@@ -1,2 +1,5 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<h1>Welcome to WLK-Client</h1>
+<form>
+  <label for="aname">Artikelname:</label>
+  <input id="aname" type="text">
+</form>
