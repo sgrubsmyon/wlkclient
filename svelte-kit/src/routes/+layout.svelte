@@ -34,20 +34,23 @@
 <div class:with-sidebar={data.user}>
 	{#if data.user && data.tse}
 		{#if !data.tse.accessible}
-			{#if !data.tse.libraryLoaded}
-				<Alert severity="error">
-					<strong>Die TSE-Bibliothek ist auf dem Server nicht geladen.</strong>
-					Ohne die Herstellerbibliothek kann die TSE nicht angesprochen werden; es kann keine Signatur
-					erzeugt werden. Der Fehler wird in der TSE-Tabelle der Datenbank vermerkt.
-				</Alert>
-			{:else}
-				<Alert severity="warn">
-					<strong>Die TSE ist nicht erreichbar.</strong>
-					Bitte stellen Sie sicher, dass die TSE korrekt im Server eingesteckt ist. Verkäufe sind weiterhin
-					möglich, aber es kann keine Signatur erzeugt werden; der Fehler wird in der TSE-Tabelle der
-					Datenbank vermerkt.
-				</Alert>
-			{/if}
+			<Alert severity="warn">
+				<strong>Die TSE ist nicht erreichbar.</strong>
+				{#if data.tse.deviceError}
+					{data.tse.deviceError}.
+				{:else}
+					Bitte stellen Sie sicher, dass die TSE korrekt im Server eingesteckt ist.
+				{/if}
+				Verkäufe sind weiterhin möglich, aber es kann keine Signatur erzeugt werden; der Fehler wird in
+				der TSE-Tabelle der Datenbank vermerkt.
+			</Alert>
+		{:else if data.tse.blockedPins.length}
+			<Alert severity="warn">
+				<strong>PIN gesperrt: {data.tse.blockedPins.join(', ')}.</strong>
+				Die TSE kann sich mit dieser PIN nicht mehr anmelden. Verkäufe sind weiterhin möglich, aber es
+				kann keine Signatur erzeugt werden; der Fehler wird in der TSE-Tabelle der Datenbank vermerkt.
+				<a class="alert-action" href={resolve('/tse/unblock')}>PIN entsperren</a>
+			</Alert>
 		{:else if data.tse.lifeCycleState === 2}
 			<Alert severity="warn">
 				<strong>Die TSE ist initialisiert, aber ihre Uhrzeit ist nicht gesetzt.</strong>

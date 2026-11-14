@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { LogOut, Moon, Sun } from '@lucide/svelte';
+	import { Activity, LogOut, Moon, Sun } from '@lucide/svelte';
 
 	let { user }: { user: NonNullable<App.Locals['user']> } = $props();
 
@@ -29,6 +29,9 @@
 	>
 		{initial}
 	</a>
+	<a class="icon-link" href={resolve('/tse/status')} title="TSE-Status">
+		<Activity size={24} />
+	</a>
 	<button type="button" title="Theme wechseln" onclick={toggleTheme}>
 		<span class="sun"><Sun size={24} /></span>
 		<span class="moon"><Moon size={24} /></span>
@@ -55,7 +58,8 @@
 	}
 
 	button,
-	.profile {
+	.profile,
+	.icon-link {
 		width: 50px;
 		height: 50px;
 		display: grid;
@@ -68,8 +72,13 @@
 	}
 
 	button:hover,
-	.profile:hover {
+	.profile:hover,
+	.icon-link:hover {
 		background-color: #5a5a5a;
+	}
+
+	.icon-link {
+		text-decoration: none;
 	}
 
 	.profile {
