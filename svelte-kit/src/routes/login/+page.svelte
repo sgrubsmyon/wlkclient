@@ -1,10 +1,45 @@
+<script lang="ts">
+  import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
+
+  let username: string = $state('');
+  let password: string = $state('');
+
+  const handleSubmit = async (event: Event) => {
+    event.preventDefault();
+
+    // Here you would typically send a request to your backend to authenticate the user
+    // For demonstration purposes, we'll just log the username and password
+    console.log('Username:', username);
+    console.log('Password:', password);
+
+    // And here we send it for real
+    fetch("http://localhost:8000/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        username: username,
+        password: password
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8"
+      }
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json));
+
+    // After successful login, you might want to redirect the user
+    // goto('/dashboard'); // Uncomment this line to redirect after login
+  };
+</script>
+
 <main>
-  <form>
+  <form on:submit={handleSubmit}>
     <div class="grid">
       <label for="username">Benutzername:</label>
-      <input id="username" type="text">
+      <input id="username" type="text" bind:value={username}>
       <label for="password">Passwort:</label>
-      <input id="password" type="password">
+      <input id="password" type="password" bind:value={password}>
     </div>
     <button type="submit">Login</button>
   </form>
