@@ -1,5 +1,17 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { LogOut, Moon, Sun } from '@lucide/svelte';
+
+	let { user }: { user: NonNullable<App.Locals['user']> } = $props();
+
+	const initial = $derived(Array.from(user.username)[0]?.toUpperCase() ?? '?');
+	const color = $derived(avatarColor(user.username));
+
+	function avatarColor(name: string) {
+		let hue = 0;
+		for (const char of name) hue = (hue * 31 + (char.codePointAt(0) ?? 0)) % 360;
+		return `hsl(${hue} 60% 45%)`;
+	}
 
 	function toggleTheme() {
 		const theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -9,6 +21,14 @@
 </script>
 
 <nav>
+	<a
+		class="profile"
+		href={resolve('/me')}
+		title={`Eingeloggt als ${user.username}`}
+		style:background-color={color}
+	>
+		{initial}
+	</a>
 	<button type="button" title="Theme wechseln" onclick={toggleTheme}>
 		<span class="sun"><Sun size={24} /></span>
 		<span class="moon"><Moon size={24} /></span>
@@ -34,7 +54,8 @@
 		z-index: 100;
 	}
 
-	button {
+	button,
+	.profile {
 		width: 50px;
 		height: 50px;
 		display: grid;
@@ -46,8 +67,16 @@
 		cursor: pointer;
 	}
 
-	button:hover {
+	button:hover,
+	.profile:hover {
 		background-color: #5a5a5a;
+	}
+
+	.profile {
+		border-radius: 50%;
+		font-size: 1.25rem;
+		font-weight: 600;
+		text-decoration: none;
 	}
 
 	form {

@@ -12,7 +12,7 @@
 </svelte:head>
 
 {#if data.user}
-	<Sidebar />
+	<Sidebar user={data.user} />
 {/if}
 
 <div class:with-sidebar={data.user}>
