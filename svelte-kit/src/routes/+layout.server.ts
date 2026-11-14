@@ -1,8 +1,30 @@
+import { API_URL } from '#lib/server/api.js';
 import { requireLogin } from '#lib/server/auth.js';
 
-export function load({ url }) {
+export async function load({ url, cookies, fetch }) {
 	// The login page must stay reachable without a session, otherwise the guard loops.
 	if (url.pathname === '/login') return;
 
-	return { user: requireLogin() };
+	const user = requireLogin();
+	const token = cookies.get('access_token');
+
+	// Not being able to ask the API is treated like an inaccessible TSE.
+	let tse = { accessible: false, initialized: false, timeError: null };
+	try {
+		const response = await fetch(`${API_URL}/tse/status`, {
+			headers: { authorization: `Bearer ${token}` }
+		});
+		if (response.ok) {
+			const status = await response.json();
+			tse = {
+				accessible: Boolean(status.library_loaded && status.opened),
+				initialized: Boolean(status.initialized),
+				timeError: status.time_error ?? null
+			};
+		}
+	} catch {
+		// keep the inaccessible default
+	}
+
+	return { user, tse };
 }
