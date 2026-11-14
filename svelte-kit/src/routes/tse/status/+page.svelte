@@ -139,13 +139,32 @@
 			<a class="button" href={resolve('/tse/download/[kind]', { kind: 'full' })}
 				>Vollständiges Log exportieren</a
 			>
-			<a class="button" href={resolve('/tse/download/[kind]', { kind: 'partial' })}
-				>Teilweises Log exportieren</a
-			>
 			<a class="button" href={resolve('/tse/download/[kind]', { kind: 'certificates' })}
 				>Zertifikate exportieren</a
 			>
 		</p>
+
+		<h3>Teilweises Log exportieren</h3>
+		<form
+			class="export-form"
+			method="POST"
+			action={resolve('/tse/download/[kind]', { kind: 'partial' })}
+		>
+			<input type="hidden" name="criterion" value="date" />
+			<label>Von <input type="date" name="start_date" /></label>
+			<label>Bis <input type="date" name="end_date" /></label>
+			<button type="submit">Zeitraum exportieren</button>
+		</form>
+		<form
+			class="export-form"
+			method="POST"
+			action={resolve('/tse/download/[kind]', { kind: 'partial' })}
+		>
+			<input type="hidden" name="criterion" value="tx_number" />
+			<label>Transaktion von <input type="number" name="start_tx_number" min="0" /></label>
+			<label>bis <input type="number" name="end_tx_number" min="0" /></label>
+			<button type="submit">Zählerbereich exportieren</button>
+		</form>
 
 		<h2>TSE-Daten</h2>
 		{#if details.length}
@@ -204,6 +223,20 @@
 	.hint {
 		font-size: 0.85rem;
 		opacity: 0.75;
+	}
+
+	.export-form {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0.5rem 0;
+	}
+
+	.export-form label {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
 	}
 
 	button,
