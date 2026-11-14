@@ -7,6 +7,12 @@
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
+		<script>
+			// Apply the stored theme before first paint to avoid a flash.
+			try {
+				document.body.dataset.theme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+			} catch {}
+		</script>
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>
