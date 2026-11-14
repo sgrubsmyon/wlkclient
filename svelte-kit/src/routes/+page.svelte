@@ -1,7 +1,5 @@
-import type { Handle } from '@sveltejs/kit/hooks';
-
-export const handle: Handle = async ({ event, resolve }) => {
-	event.locals.user = await getUserInformation(event.cookies.get('sessionid'));
-
-	return resolve(event);
-};
+<h1>Welcome to WLK-Client</h1>
+<form>
+  <label for="aname">Artikelname:</label>
+  <input id="aname" type="text">
+</form>
