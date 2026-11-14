@@ -1,41 +1,21 @@
 import { fail } from '@sveltejs/kit';
 import { API_URL } from '#lib/server/api.js';
+import { PIN_LENGTH, PUK_LENGTH, readPair } from '#lib/server/tse.js';
 import type { Actions, PageServerLoad } from './$types';
 
-const PIN_LENGTH = 8;
-const PUK_LENGTH = 10;
-
-function credentialError(name: string, value: string, length: number) {
-	const bytes = new TextEncoder().encode(value);
-	if (bytes.length !== length) {
-		return `${name} muss genau ${length} ASCII-Zeichen lang sein.`;
-	}
-	if (![...bytes].every((byte) => byte >= 0x21 && byte <= 0x7e)) {
-		return `${name} darf nur druckbare ASCII-Zeichen ohne Leerzeichen enthalten.`;
-	}
-	return null;
-}
+const pairs = [
+	['Admin-PIN', 'admin_pin', PIN_LENGTH],
+	['Admin-PUK', 'admin_puk', PUK_LENGTH],
+	['TimeAdmin-PIN', 'time_admin_pin', PIN_LENGTH],
+	['TimeAdmin-PUK', 'time_admin_puk', PUK_LENGTH]
+] as const;
 
 function readValues(form: FormData) {
-	const values = {
-		admin_pin: String(form.get('admin_pin') ?? ''),
-		admin_puk: String(form.get('admin_puk') ?? ''),
-		time_admin_pin: String(form.get('time_admin_pin') ?? ''),
-		time_admin_puk: String(form.get('time_admin_puk') ?? '')
-	};
-
-	const pairs = [
-		['Admin-PIN', 'admin_pin', PIN_LENGTH],
-		['Admin-PUK', 'admin_puk', PUK_LENGTH],
-		['TimeAdmin-PIN', 'time_admin_pin', PIN_LENGTH],
-		['TimeAdmin-PUK', 'time_admin_puk', PUK_LENGTH]
-	] as const;
+	const values: Record<string, string> = {};
 	for (const [label, key, length] of pairs) {
-		if (form.get(`${key}_confirm`) !== values[key]) {
-			return { error: `${label} und ihre Wiederholung stimmen nicht überein.` };
-		}
-		const error = credentialError(label, values[key], length);
-		if (error) return { error };
+		const parsed = readPair(form, key, label, length);
+		if ('error' in parsed) return { error: parsed.error };
+		values[key] = parsed.value;
 	}
 	if (form.get('written_down') !== 'on') {
 		return { error: 'Bitte bestätigen Sie, dass Sie alle vier Werte notiert haben.' };

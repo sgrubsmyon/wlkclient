@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import Alert from '#lib/Alert.svelte';
 	import type { PageProps } from './$types';
 
@@ -46,8 +47,10 @@
 			<strong>Vor der Initialisierung:</strong>
 			Die PUKs sind dauerhaft und können später nicht mehr geändert werden. Notieren Sie alle vier Werte
 			zuerst und prüfen Sie sie Zeichen für Zeichen. Die TimeAdmin-PIN muss mit
-			<code>TSE_TIME_ADMIN_PIN</code> in der Server-Konfiguration übereinstimmen. Führen Sie die Initialisierung
-			auf dem Server-Rechner oder über eine verschlüsselte Verbindung aus.
+			<code>TSE_TIME_ADMIN_PIN</code> in der Server-Konfiguration übereinstimmen. Führen Sie die
+			Initialisierung auf dem Server-Rechner oder über eine verschlüsselte Verbindung aus. Eine
+			blockierte PIN lässt sich mit dem PUK unter
+			<a href={resolve('/tse/unblock')}>PIN entsperren</a> reparieren.
 		</Alert>
 
 		{#if error}
