@@ -166,12 +166,17 @@
 	}
 
 	.name {
+		display: -webkit-box;
 		flex: 1;
+		min-width: 0;
 		overflow: hidden;
+		overflow-wrap: anywhere;
 		font-size: 1.05rem;
 		font-weight: 700;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		line-height: 1.2;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
 	}
 
 	.badge {
