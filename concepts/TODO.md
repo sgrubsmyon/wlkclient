@@ -157,18 +157,18 @@ Contract sketch (agree and document in the server OpenAPI docs):
 
 Backend prerequisites (`wlkserver`):
 
-- [ ] Add self-service endpoints: change own password (verifying the current one) and update own `pref_theme`; keep `PATCH /users/{id}` admin-only
-- [ ] Sync server `TODO.md` and `IMPLEMENTATION_PLAN.md`
+- [x] Add self-service endpoints: change own password (verifying the current one) and update own `pref_theme`; keep `PATCH /users/{id}` admin-only
+- [x] Sync server `TODO.md` and `IMPLEMENTATION_PLAN.md`
 
 Client:
 
-- [ ] `/me`: change-password form (current, new, repeat, validation, success/error alerts)
-- [ ] Theme toggle writes `pref_theme` for the logged-in user and applies the stored preference after login and on page load (no flash)
-- [ ] `/benutzer` (admin-only): heading, explanatory text, user table with the planned columns
-- [ ] Table actions: reset password to random 10-char unambiguous password, display for hand-over; activate/deactivate toggle; delete account (with confirmation)
-- [ ] Green circular "+" button top right of the table → `/benutzer/neu`
-- [ ] `/benutzer/neu`: form (username, full name, role default `mitarbeiter`, theme default `light`), validation, redirect back to the list
-- [ ] Route/page guards for admin routes (server-side redirect)
+- [x] `/me`: change-password form (current, new, repeat, validation, success/error alerts)
+- [x] Theme toggle writes `pref_theme` for the logged-in user and applies the stored preference after login and on page load (no flash)
+- [x] `/benutzer` (admin-only): heading, explanatory text, user table with the planned columns
+- [x] Table actions: reset password to random 10-char unambiguous password, display for hand-over; activate/deactivate toggle; delete account (with confirmation)
+- [x] Green circular "+" button top right of the table → `/benutzer/neu`
+- [x] `/benutzer/neu`: form (username, full name, role default `mitarbeiter`, theme default `light`), validation, redirect back to the list
+- [x] Route/page guards for admin routes (server-side redirect)
 
 ## M9 – Rechnungen
 

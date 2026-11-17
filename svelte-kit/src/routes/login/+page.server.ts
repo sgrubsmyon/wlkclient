@@ -17,11 +17,18 @@ export const actions = {
 			return fail(response.status, { username, error: 'Anmeldung fehlgeschlagen.' });
 		}
 
-		const { access_token } = await response.json();
+		const { access_token, user } = await response.json();
 		cookies.set('access_token', access_token, {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'lax',
+			secure: !dev
+		});
+		cookies.set('theme', user?.pref_theme === 'dark' ? 'dark' : 'light', {
+			path: '/',
+			httpOnly: false,
+			sameSite: 'lax',
+			maxAge: 60 * 60 * 24 * 365,
 			secure: !dev
 		});
 

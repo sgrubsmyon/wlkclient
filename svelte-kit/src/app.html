@@ -8,9 +8,12 @@
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<script>
-			// Apply the stored theme before first paint to avoid a flash.
+			// Apply the stored theme before first paint to avoid a flash. The cookie
+			// follows the user's preference across devices (set at login).
 			try {
-				document.body.dataset.theme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+				const cookie = document.cookie.match(/(?:^|; )theme=(dark|light)/);
+				const theme = cookie ? cookie[1] : localStorage.getItem('theme');
+				document.body.dataset.theme = theme === 'dark' ? 'dark' : 'light';
 			} catch {}
 		</script>
 		<div style="display: contents">%sveltekit.body%</div>

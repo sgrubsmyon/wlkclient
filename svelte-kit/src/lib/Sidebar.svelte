@@ -13,6 +13,7 @@
 		Users
 	} from '@lucide/svelte';
 	import type { Component } from 'svelte';
+	import { api } from '#lib/api.js';
 
 	let { user }: { user: NonNullable<App.Locals['user']> } = $props();
 
@@ -69,12 +70,19 @@
 
 	function toggleTheme() {
 		dark = !dark;
-		document.body.dataset.theme = dark ? 'dark' : 'light';
+		const theme = dark ? 'dark' : 'light';
+		document.body.dataset.theme = theme;
+		document.cookie = `theme=${theme}; path=/; max-age=31536000; samesite=lax`;
 		try {
-			localStorage.setItem('theme', dark ? 'dark' : 'light');
+			localStorage.setItem('theme', theme);
 		} catch {
 			// ignore unavailable storage
 		}
+		// Remember the preference on the user account; a failure must not block the UI.
+		void api('auth/me', {
+			method: 'PATCH',
+			body: JSON.stringify({ pref_theme: theme })
+		}).catch(() => {});
 	}
 </script>
 
