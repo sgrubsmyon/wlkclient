@@ -33,9 +33,8 @@ The wlkclient is supposed to consist of the following pages, linked with one ico
 
 ### Profil
 
-- Route: /ich
-- Implemented, but missing:
-	- Method to change own password
+- Route: /me (sidebar entry "Profil")
+- Implemented incl. changing the own password
 
 ### Ausloggen
 
@@ -71,8 +70,7 @@ The wlkclient is supposed to consist of the following pages, linked with one ico
 ### Dunkel/hell (Toggle dark/light theme)
 
 Just a button, no extra page. Implemented.
-Missing:
-- changing theme updates 'pref_theme' in user DB table, so preferred theme is remembered and applied after login
+Changing the theme updates `pref_theme` in the user table and a `theme` cookie, so the preferred theme is remembered and applied after login without a flash.
 
 ### Kassieren
 

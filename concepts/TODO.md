@@ -8,6 +8,11 @@ This file tracks the implementation of the GUI described in `IMPLEMENTATION_PLAN
 
 **Rule:** business logic belongs in the API (`wlkserver`). The client only holds display state (cart rows as returned by the API), calls endpoints and renders. Anything that computes prices, taxes, discounts, Pfand relations or totals is a backend task.
 
+## Current status
+
+Milestones **M0–M8 are implemented** (see the commit history). M9–M16 are still open; those pages are
+listed in the plan with "Details to be specified" and need the page design in the plan first.
+
 ## Milestone overview
 
 | Milestone | Content |
