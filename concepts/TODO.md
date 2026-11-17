@@ -86,33 +86,33 @@ Contract sketch (agree and document in the server OpenAPI docs):
 
 ## M2 – Kassieren: article search and add modes
 
-- [ ] Reusable `Suchfeld` component (input + dropdown with thumbnails, keyboard navigation, "Selection blue" highlight, single-match enter)
-- [ ] Client-side cart store: ordered rows with stable refs, parent/child relations, selection state; no price/tax computation in the client
-- [ ] Implement page layout: left selection column (33 %), right cart column (66 %), two flex rows
-- [ ] Mode pill group "Normal" / "Leergut" / "Rückgabe" (radio semantics, default "Normal", primary background for active)
-- [ ] Barcode field: query on Enter with wildcard `*<barcode>*`, dropdown with thumbnail + barcode
-- [ ] Art.-Nr. field: query from 3 characters, re-query on each keystroke, dropdown with thumbnail + supplier short name (italic) + `artikel_nr`
-- [ ] Art.-Name field: query from 3 characters, dropdown with thumbnail + supplier short name + `artikel_name` truncated to 100 chars with `…`
-- [ ] Dropdown behaviour: viewport-height limit with scroll, mouse click adds, arrow-key navigation with "Selection blue" highlight, Enter adds the highlighted article; single match + Enter adds directly
-- [ ] Add action calls the M1 endpoint according to the mode: Normal → `hinzufuegen`, Leergut → `leergut`, Rückgabe → `hinzufuegen` with negative row
-- [ ] After adding: clear the active search field, clear its dropdown, return focus to the barcode field
+- [x] Reusable `Suchfeld` component (input + dropdown with thumbnails, keyboard navigation, "Selection blue" highlight, single-match enter)
+- [x] Client-side cart store: ordered rows with stable refs, parent/child relations, selection state; no price/tax computation in the client
+- [x] Implement page layout: left selection column (33 %), right cart column (66 %), two flex rows
+- [x] Mode pill group "Normal" / "Leergut" / "Rückgabe" (radio semantics, default "Normal", primary background for active)
+- [x] Barcode field: query on Enter with wildcard `*<barcode>*`, dropdown with thumbnail + barcode
+- [x] Art.-Nr. field: query from 3 characters, re-query on each keystroke, dropdown with thumbnail + supplier short name (italic) + `artikel_nr`
+- [x] Art.-Name field: query from 3 characters, dropdown with thumbnail + supplier short name + `artikel_name` truncated to 100 chars with `…`
+- [x] Dropdown behaviour: viewport-height limit with scroll, mouse click adds, arrow-key navigation with "Selection blue" highlight, Enter adds the highlighted article; single match + Enter adds directly
+- [x] Add action calls the M1 endpoint according to the mode: Normal → `hinzufuegen`, Leergut → `leergut`, Rückgabe → `hinzufuegen` with negative row
+- [x] After adding: clear the active search field, clear its dropdown, return focus to the barcode field
 - [ ] Empty-result feedback (no dropdown, short hint) and error handling (API unreachable, no Pfand configured for Leergut)
 - [ ] Client-side tests for search debouncing, keyboard navigation and mode-dependent row creation
 
 ## M3 – Kassieren: cart list, quantities, selection, totals
 
-- [ ] Cart header: "Warenkorb" with icon and red "Alles löschen" button; clearing also aborts the running TSE transaction (M7)
-- [ ] Cart list container: fills available height, vertical overflow auto
-- [ ] `KassierArtikel` row: 100×100 image, name in large bold, VAT badge with per-rate colour (0 % success, 7 % info, 19 % error), price `vk_preis × Stückzahl`, supplier short name (small bold), `artikel_nr` (small italic), `-`/`+` buttons, editable quantity input, red trash button, `ges_preis` in large bold
-- [ ] Child rows (Pfand, "Rabatt auf Artikel"): no image, indented, correct colour per kind (Pfand blue, Rabatt error red, Leergut/Rückgabe success green)
-- [ ] Receipt-level row ("Rabatt auf Rechnung") at the end: no image, not indented
-- [ ] Quantity `-`/`+` and manual input (integer, ≥1) update the parent row and re-synchronise Pfand/Rabatt child rows via M1
-- [ ] Remove row button deletes the row and all its children; "Alles löschen" empties the cart
-- [ ] Selection toggle on row click, ignoring clicks on quantity controls, price input and buttons; selected rows use "Selection blue" background with readable text
-- [ ] Only normal article rows are selectable; Pfand and Rabatt rows are not
-- [ ] Totals panel: "Zwischensumme", "inkl. 0 %/7 %/19 % MwSt", "Rabatte", values from `POST /warenkorb/summen`
-- [ ] Fixed-height (350 px) bottom area with totals left and payment buttons right
-- [ ] Tests for quantity sync, child-row removal and selection state
+- [x] Cart header: "Warenkorb" with icon and red "Alles löschen" button; clearing also aborts the running TSE transaction (M7)
+- [x] Cart list container: fills available height, vertical overflow auto
+- [x] `KassierArtikel` row: 100×100 image, name in large bold, VAT badge with per-rate colour (0 % success, 7 % info, 19 % error), price `vk_preis × Stückzahl`, supplier short name (small bold), `artikel_nr` (small italic), `-`/`+` buttons, editable quantity input, red trash button, `ges_preis` in large bold
+- [x] Child rows (Pfand, "Rabatt auf Artikel"): no image, indented, correct colour per kind (Pfand blue, Rabatt error red, Leergut/Rückgabe success green)
+- [x] Receipt-level row ("Rabatt auf Rechnung") at the end: no image, not indented
+- [x] Quantity `-`/`+` and manual input (integer, ≥1) update the parent row and re-synchronise Pfand/Rabatt child rows via M1
+- [x] Remove row button deletes the row and all its children; "Alles löschen" empties the cart
+- [x] Selection toggle on row click, ignoring clicks on quantity controls, price input and buttons; selected rows use "Selection blue" background with readable text
+- [x] Only normal article rows are selectable; Pfand and Rabatt rows are not
+- [x] Totals panel: "Zwischensumme", "inkl. 0 %/7 %/19 % MwSt", "Rabatte", values from `POST /warenkorb/summen`
+- [x] Fixed-height (350 px) bottom area with totals left and payment buttons right
+- [x] Tests for quantity sync, child-row removal and selection state
 
 ## M4 – Kassieren: articles with variable price
 

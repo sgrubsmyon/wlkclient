@@ -25,7 +25,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<svelte:element this={'style'}>{themeCss()}</svelte:element>
+	<svelte:element this={"style"}>{themeCss()}</svelte:element>
 </svelte:head>
 
 {#if data.user}
