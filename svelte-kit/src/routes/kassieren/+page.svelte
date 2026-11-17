@@ -333,10 +333,6 @@
 		closePreisModal();
 		await run(() => store.add(artikel, 'normal', preis));
 	}
-
-	function kurz(text: string, length = 100) {
-		return text.length > length ? `${text.slice(0, length)}…` : text;
-	}
 </script>
 
 <main>
@@ -403,13 +399,14 @@
 						placeholder="Artikelname"
 						trigger="input"
 						minChars={3}
+						wide
 						search={searchName}
 						onselect={addArtikel}
 					>
 						{#snippet children(artikel)}
 							<Thumbnail artikelId={artikel.artikel_id} size={thumbnailSize} />
 							<em>{artikel.lieferant_name}</em>
-							<span>{kurz(artikel.artikel_name)}</span>
+							<span class="artikel-name">{artikel.artikel_name}</span>
 						{/snippet}
 					</Suchfeld>
 				</div>
@@ -806,6 +803,17 @@
 		margin: 0;
 		font-size: 0.85rem;
 		opacity: 0.8;
+	}
+
+	/* Long article names are clamped to two lines inside the search results. */
+	.artikel-name {
+		display: -webkit-box;
+		overflow: hidden;
+		overflow-wrap: anywhere;
+		line-height: 1.2;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
 	}
 
 	.warenkorb .liste {

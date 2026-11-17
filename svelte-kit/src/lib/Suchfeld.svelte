@@ -7,6 +7,7 @@
 		placeholder = '',
 		trigger = 'input',
 		minChars = 3,
+		wide = false,
 		search,
 		onselect,
 		children
@@ -14,6 +15,7 @@
 		placeholder?: string;
 		trigger?: 'input' | 'enter';
 		minChars?: number;
+		wide?: boolean;
 		search: (term: string) => Promise<Artikel[]>;
 		onselect: (artikel: Artikel) => void | Promise<void>;
 		children: Snippet<[Artikel]>;
@@ -25,6 +27,8 @@
 	let searched = $state(false);
 	let input: TextInput | undefined = $state();
 	let container: HTMLDivElement | undefined = $state();
+	let treffer: HTMLUListElement | undefined = $state();
+	let position = $state({ top: 0, left: 0, width: 0 });
 	let timer: ReturnType<typeof setTimeout> | undefined;
 
 	export function focus() {
@@ -41,6 +45,38 @@
 		items = [];
 		active = -1;
 	}
+
+	/** Fixed positioning, so a wide list is not clipped by the scroll container. */
+	function place() {
+		if (!container) return;
+		const rect = container.getBoundingClientRect();
+		const maxWidth = window.innerWidth - rect.left - 8;
+		position = {
+			top: rect.bottom + 2,
+			left: rect.left,
+			width: wide ? Math.min(rect.width * 2, maxWidth) : rect.width
+		};
+	}
+
+	$effect(() => {
+		if (!items.length) return;
+		place();
+		const update = () => place();
+		window.addEventListener('scroll', update, true);
+		window.addEventListener('resize', update);
+		return () => {
+			window.removeEventListener('scroll', update, true);
+			window.removeEventListener('resize', update);
+		};
+	});
+
+	// Keep the highlighted entry inside the visible part of the list.
+	$effect(() => {
+		if (active >= 0 && treffer) {
+			const entry = treffer.children[active] as HTMLElement | undefined;
+			entry?.scrollIntoView({ block: 'nearest' });
+		}
+	});
 
 	async function searchNow() {
 		clearTimeout(timer);
@@ -111,12 +147,19 @@
 		onchange={onInput}
 	/>
 	{#if items.length}
-		<ul class="treffer">
+		<ul
+			class="treffer"
+			bind:this={treffer}
+			style:top="{position.top}px"
+			style:left="{position.left}px"
+			style:width="{position.width}px"
+		>
 			{#each items as artikel, index (artikel.artikel_id)}
 				<li>
 					<button
 						type="button"
 						class:active={index === active}
+						onmouseenter={() => (active = index)}
 						onmousedown={(event) => {
 							event.preventDefault();
 							void select(artikel);
@@ -140,11 +183,8 @@
 	}
 
 	.treffer {
-		position: absolute;
-		top: calc(100% + 2px);
-		left: 0;
-		right: 0;
-		z-index: 50;
+		position: fixed;
+		z-index: 500;
 		max-height: 30vh;
 		overflow-y: auto;
 		margin: 0;
@@ -160,7 +200,10 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+		box-sizing: border-box;
 		width: 100%;
+		height: 3.25rem;
+		overflow: hidden;
 		padding: 0.3rem 0.5rem;
 		border: none;
 		background: transparent;
@@ -176,9 +219,16 @@
 	}
 
 	.leer {
-		margin: 0.25rem 0 0;
+		position: absolute;
+		top: calc(100% + 2px);
+		left: 0;
+		margin: 0;
+		padding: 0.35rem 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: 0.375rem;
+		background-color: var(--surface);
 		font-size: 0.85rem;
-		opacity: 0.7;
+		opacity: 0.8;
 	}
 
 	button.active :global(em) {
