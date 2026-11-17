@@ -7,6 +7,7 @@ export type Artikel = {
 	vk_preis: number | null;
 	variabler_preis: boolean;
 	lieferant_name: string;
+	lieferant_kurzname: string | null;
 	produktgruppen_name: string;
 	pfand_artikel_id: number | null;
 	pfand_wert: number | null;

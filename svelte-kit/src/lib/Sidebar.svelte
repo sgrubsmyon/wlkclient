@@ -39,6 +39,7 @@
 	const color = $derived(avatarColor(user.username));
 	let dark = $state(false);
 	let collapsed = $state(false);
+	let nav: HTMLElement | undefined = $state();
 
 	$effect(() => {
 		try {
@@ -49,8 +50,15 @@
 		dark = document.body.dataset.theme === 'dark';
 	});
 
+	// Keep the content offset in sync with the real (content-sized) sidebar width.
 	$effect(() => {
-		document.documentElement.style.setProperty('--sidebar-width', collapsed ? '60px' : '210px');
+		if (!nav) return;
+		const update = () =>
+			document.documentElement.style.setProperty('--sidebar-width', `${nav!.offsetWidth}px`);
+		update();
+		const observer = new ResizeObserver(update);
+		observer.observe(nav);
+		return () => observer.disconnect();
 	});
 
 	function toggleCollapsed() {
@@ -86,7 +94,7 @@
 	}
 </script>
 
-<nav class:collapsed>
+<nav class:collapsed bind:this={nav}>
 	<button
 		type="button"
 		class="toggle"
@@ -138,7 +146,7 @@
 		position: fixed;
 		inset: 0 auto 0 0;
 		z-index: 100;
-		width: var(--sidebar-width, 60px);
+		width: max-content;
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
@@ -146,7 +154,17 @@
 		padding: 5px;
 		overflow: hidden;
 		background-color: var(--sidebar-bg);
-		transition: width 0.15s;
+	}
+
+	nav.collapsed {
+		box-sizing: border-box;
+		width: 60px;
+	}
+
+	nav.collapsed button,
+	nav.collapsed .icon-link {
+		justify-content: center;
+		padding: 0;
 	}
 
 	button,

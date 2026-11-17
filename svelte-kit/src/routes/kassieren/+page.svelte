@@ -385,7 +385,7 @@
 					>
 						{#snippet children(artikel)}
 							<Thumbnail artikelId={artikel.artikel_id} size={thumbnailSize} />
-							<em>{artikel.lieferant_name}</em>
+							<em>{artikel.lieferant_kurzname ?? artikel.lieferant_name}</em>
 							<span>{artikel.artikel_nr}</span>
 						{/snippet}
 					</Suchfeld>
@@ -405,8 +405,9 @@
 					>
 						{#snippet children(artikel)}
 							<Thumbnail artikelId={artikel.artikel_id} size={thumbnailSize} />
-							<em>{artikel.lieferant_name}</em>
 							<span class="artikel-name">{artikel.artikel_name}</span>
+							<em class="kurzname">{artikel.lieferant_kurzname ?? artikel.lieferant_name}</em>
+							<strong class="preis">{euro(artikel.vk_preis)}</strong>
 						{/snippet}
 					</Suchfeld>
 				</div>
@@ -808,12 +809,24 @@
 	/* Long article names are clamped to two lines inside the search results. */
 	.artikel-name {
 		display: -webkit-box;
+		flex: 1 1 auto;
+		min-width: 0;
 		overflow: hidden;
 		overflow-wrap: anywhere;
 		line-height: 1.2;
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
+	}
+
+	.kurzname,
+	.preis {
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+
+	.preis {
+		font-weight: 700;
 	}
 
 	.warenkorb .liste {

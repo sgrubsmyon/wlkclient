@@ -11,6 +11,7 @@ const artikel: Artikel = {
 	vk_preis: 2.5,
 	variabler_preis: false,
 	lieferant_name: 'Hof',
+	lieferant_kurzname: 'HOF',
 	produktgruppen_name: 'Obst',
 	pfand_artikel_id: 9,
 	pfand_wert: 0.5
