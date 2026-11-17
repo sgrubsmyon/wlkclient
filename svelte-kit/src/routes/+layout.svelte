@@ -32,7 +32,7 @@
 	<Sidebar user={data.user} />
 {/if}
 
-<div class:with-sidebar={data.user}>
+<div class:with-sidebar={data.user} class:fit-height={page.url.pathname === '/kassieren'}>
 	{#if data.user && data.tse}
 		{#if !data.tse.accessible}
 			<Alert severity="warn">
@@ -126,6 +126,13 @@
 		box-sizing: border-box;
 		min-height: 100vh;
 		padding-left: var(--sidebar-width, 60px);
+	}
+
+	/* Pages with an internal scroll area must not grow beyond the viewport. */
+	.with-sidebar.fit-height {
+		height: 100vh;
+		min-height: 0;
+		overflow: hidden;
 	}
 
 	.inline {

@@ -458,7 +458,6 @@
 						id="rabatt-prozent"
 						bind:value={rabattProzent}
 						disabled={!canPercent}
-						placeholder="%"
 						inputmode="decimal"
 					/>
 					<span>%</span>
@@ -468,7 +467,6 @@
 						id="rabatt-euro"
 						bind:value={rabattEuro}
 						disabled={!canSingle}
-						placeholder="€"
 						inputmode="decimal"
 					/>
 					<span>€</span>
@@ -478,7 +476,6 @@
 						id="abweichender-preis"
 						bind:value={abweichenderPreis}
 						disabled={!canSingle}
-						placeholder="€"
 						inputmode="decimal"
 					/>
 					<span>€</span>
@@ -606,7 +603,7 @@
 					</div>
 
 					{#if !ecZahlung}
-						<div class="zeile">
+						<div class="zeile cash">
 							<label for="kunde-gibt">KUNDE GIBT:</label>
 							<TextInput
 								bind:value={kundeGibt}
@@ -865,7 +862,7 @@
 	.summen {
 		display: flex;
 		gap: 1rem;
-		height: 250px;
+		min-height: 250px;
 		flex-shrink: 0;
 	}
 
@@ -1061,8 +1058,16 @@
 
 	.zeile {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.5rem;
+	}
+
+	/* Label and input stay together, also when the payment column is narrow. */
+	.zeile.cash {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		gap: 0.35rem 0.5rem;
 	}
 
 	.zeile label {
@@ -1072,7 +1077,8 @@
 	}
 
 	.zeile input.gross {
-		width: 100%;
+		flex: 1 1 6rem;
+		min-width: 6rem;
 		padding: 0.35rem 0.5rem;
 		border: 1px solid var(--border);
 		border-radius: 0.375rem;
