@@ -6,6 +6,8 @@
 		Barcode,
 		CircleHelp,
 		Check,
+		ChevronDown,
+		ChevronRight,
 		CirclePercent,
 		CreditCard,
 		Gift,
@@ -55,6 +57,23 @@
 	];
 	const zahlungsart = $derived(ecZahlung ? 'karte' : 'bar');
 	const kundeGibtWert = $derived(parseDecimal(kundeGibt));
+
+	// On small screens the rarely used sections start collapsed and move above
+	// the article search, so search and cart stay next to each other.
+	let offen = $state({ preis: true, rabatt: true, anzahlung: true });
+
+	$effect(() => {
+		const media = window.matchMedia('(max-width: 1100px)');
+		let last: boolean | null = null;
+		const update = () => {
+			if (last === media.matches) return;
+			last = media.matches;
+			offen = { preis: !last, rabatt: !last, anzahlung: !last };
+		};
+		update();
+		media.addEventListener('change', update);
+		return () => media.removeEventListener('change', update);
+	});
 
 	const modi = [
 		{ value: 'normal', label: 'Normal' },
@@ -347,7 +366,7 @@
 
 	<div class="layout">
 		<div class="auswahl">
-			<section>
+			<section class="section-artikel">
 				<h3><ListOrdered size={20} /> Artikel hinzufügen</h3>
 				<PillGroup options={modi} bind:value={modus} />
 				{#if modus === 'leergut'}
@@ -413,110 +432,144 @@
 				</div>
 			</section>
 
-			<section>
-				<h3><CircleHelp size={20} /> Artikel mit var. Preis</h3>
-				<div class="grid-buttons">
-					<button type="button" onclick={() => nameFeld?.setTerm('Sonstiges', true)}>
-						Sonstiges
-					</button>
-					<button type="button" onclick={() => run(() => artikelByNr('SONSTIGES1'))}>
-						7% MwSt
-					</button>
-					<button type="button" onclick={() => run(() => artikelByNr('GUTSCHEIN'))}>
-						<Gift size={18} /> Gutschein verkaufen
-					</button>
-					<button type="button" onclick={() => run(() => artikelByNr('SONSTIGES2'))}>
-						19% MwSt
-					</button>
-				</div>
-			</section>
-
-			<section>
+			<section class="section-preis">
 				<h3>
-					<CirclePercent size={20} />
-					{store.staged ? 'Rabatt auf Rechnung' : 'Rabatt auf ausgewählte Artikel'}
+					<button
+						type="button"
+						class="section-toggle"
+						aria-expanded={offen.preis}
+						onclick={() => (offen = { ...offen, preis: !offen.preis })}
+					>
+						<CircleHelp size={20} /> Artikel mit var. Preis
+						{#if offen.preis}<ChevronDown size={18} />{:else}<ChevronRight size={18} />{/if}
+					</button>
 				</h3>
-				<div class="rabatt-buttons">
-					{#each prozentWerte as prozent (prozent)}
-						<button
-							type="button"
-							disabled={!canPercent}
-							onclick={() => prozentRabatt(prozent / 100)}
-						>
-							{prozent}%
+				{#if offen.preis}
+					<div class="grid-buttons">
+						<button type="button" onclick={() => nameFeld?.setTerm('Sonstiges', true)}>
+							Sonstiges
 						</button>
-					{/each}
-					<button type="button" disabled={!canMitarbeiter} onclick={() => prozentRabatt(0.1)}>
-						Mitarbeiter
-					</button>
-				</div>
-				<div class="individuell">
-					<label for="rabatt-prozent">individuell:</label>
-					<input
-						id="rabatt-prozent"
-						bind:value={rabattProzent}
-						disabled={!canPercent}
-						inputmode="decimal"
-					/>
-					<span>%</span>
-					<button type="button" disabled={!canPercent} onclick={individuellProzent}>OK</button>
-					<label for="rabatt-euro">individuell:</label>
-					<input
-						id="rabatt-euro"
-						bind:value={rabattEuro}
-						disabled={!canSingle}
-						inputmode="decimal"
-					/>
-					<span>€</span>
-					<button type="button" disabled={!canSingle} onclick={individuellEuro}>OK</button>
-					<label for="abweichender-preis">Abweichender Preis:</label>
-					<input
-						id="abweichender-preis"
-						bind:value={abweichenderPreis}
-						disabled={!canSingle}
-						inputmode="decimal"
-					/>
-					<span>€</span>
-					<button type="button" disabled={!canSingle} onclick={abweichendenPreisSetzen}>
-						OK
-					</button>
-				</div>
-			</section>
-
-			<section>
-				<h3><BanknoteArrowUp size={20} /> Anzahlung</h3>
-				<div class="anzahlung-buttons">
-					<button
-						type="button"
-						onclick={() => {
-							anzahlungModal = 'neu';
-							anzahlungEingabe = '';
-						}}
-					>
-						<BanknoteArrowUp size={18} /> Neue Anzahlung
-					</button>
-					<button
-						type="button"
-						onclick={() => {
-							anzahlungModal = 'aufloesen';
-							offeneAnzahlungen = [];
-							void openAnzahlungenLaden();
-						}}
-					>
-						<BanknoteArrowDown size={18} /> Anzahlung auflösen
-					</button>
-				</div>
-				{#if store.depositActive}
-					<div class="anzahlung-info">
-						<span>
-							{store.anzahlungBetrag != null
-								? `Neue Anzahlung über ${euro(store.anzahlungBetrag)}`
-								: `Anzahlung aus Rechnung Nr. ${store.anzahlungAufloesenNr}`}
-						</span>
-						<button type="button" onclick={() => run(() => store.previewAnzahlung(null, null))}>
-							Abbrechen
+						<button type="button" onclick={() => run(() => artikelByNr('SONSTIGES1'))}>
+							7% MwSt
+						</button>
+						<button type="button" onclick={() => run(() => artikelByNr('GUTSCHEIN'))}>
+							<Gift size={18} /> Gutschein verkaufen
+						</button>
+						<button type="button" onclick={() => run(() => artikelByNr('SONSTIGES2'))}>
+							19% MwSt
 						</button>
 					</div>
+				{/if}
+			</section>
+
+			<section class="section-rabatt">
+				<h3>
+					<button
+						type="button"
+						class="section-toggle"
+						aria-expanded={offen.rabatt}
+						onclick={() => (offen = { ...offen, rabatt: !offen.rabatt })}
+					>
+						<CirclePercent size={20} />
+						{store.staged ? 'Rabatt auf Rechnung' : 'Rabatt auf ausgewählte Artikel'}
+						{#if offen.rabatt}<ChevronDown size={18} />{:else}<ChevronRight size={18} />{/if}
+					</button>
+				</h3>
+				{#if offen.rabatt}
+					<div class="rabatt-buttons">
+						{#each prozentWerte as prozent (prozent)}
+							<button
+								type="button"
+								disabled={!canPercent}
+								onclick={() => prozentRabatt(prozent / 100)}
+							>
+								{prozent}%
+							</button>
+						{/each}
+						<button type="button" disabled={!canMitarbeiter} onclick={() => prozentRabatt(0.1)}>
+							Mitarbeiter
+						</button>
+					</div>
+					<div class="individuell">
+						<label for="rabatt-prozent">individuell:</label>
+						<input
+							id="rabatt-prozent"
+							bind:value={rabattProzent}
+							disabled={!canPercent}
+							inputmode="decimal"
+						/>
+						<span>%</span>
+						<button type="button" disabled={!canPercent} onclick={individuellProzent}>OK</button>
+						<label for="rabatt-euro">individuell:</label>
+						<input
+							id="rabatt-euro"
+							bind:value={rabattEuro}
+							disabled={!canSingle}
+							inputmode="decimal"
+						/>
+						<span>€</span>
+						<button type="button" disabled={!canSingle} onclick={individuellEuro}>OK</button>
+						<label for="abweichender-preis">Abweichender Preis:</label>
+						<input
+							id="abweichender-preis"
+							bind:value={abweichenderPreis}
+							disabled={!canSingle}
+							inputmode="decimal"
+						/>
+						<span>€</span>
+						<button type="button" disabled={!canSingle} onclick={abweichendenPreisSetzen}>
+							OK
+						</button>
+					</div>
+				{/if}
+			</section>
+
+			<section class="section-anzahlung">
+				<h3>
+					<button
+						type="button"
+						class="section-toggle"
+						aria-expanded={offen.anzahlung}
+						onclick={() => (offen = { ...offen, anzahlung: !offen.anzahlung })}
+					>
+						<BanknoteArrowUp size={20} /> Anzahlung
+						{#if offen.anzahlung}<ChevronDown size={18} />{:else}<ChevronRight size={18} />{/if}
+					</button>
+				</h3>
+				{#if offen.anzahlung}
+					<div class="anzahlung-buttons">
+						<button
+							type="button"
+							onclick={() => {
+								anzahlungModal = 'neu';
+								anzahlungEingabe = '';
+							}}
+						>
+							<BanknoteArrowUp size={18} /> Neue Anzahlung
+						</button>
+						<button
+							type="button"
+							onclick={() => {
+								anzahlungModal = 'aufloesen';
+								offeneAnzahlungen = [];
+								void openAnzahlungenLaden();
+							}}
+						>
+							<BanknoteArrowDown size={18} /> Anzahlung auflösen
+						</button>
+					</div>
+					{#if store.depositActive}
+						<div class="anzahlung-info">
+							<span>
+								{store.anzahlungBetrag != null
+									? `Neue Anzahlung über ${euro(store.anzahlungBetrag)}`
+									: `Anzahlung aus Rechnung Nr. ${store.anzahlungAufloesenNr}`}
+							</span>
+							<button type="button" onclick={() => run(() => store.previewAnzahlung(null, null))}>
+								Abbrechen
+							</button>
+						</div>
+					{/if}
 				{/if}
 			</section>
 		</div>
@@ -781,6 +834,26 @@
 		gap: 0.6rem;
 	}
 
+	.section-toggle {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0;
+		border: none;
+		background: transparent;
+		color: inherit;
+		font: inherit;
+		font-size: 1.05rem;
+		font-weight: 700;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.section-toggle :global(svg:last-child) {
+		margin-left: auto;
+	}
+
 	h3 {
 		display: flex;
 		align-items: center;
@@ -809,6 +882,23 @@
 	/* Small screens: everything stacked, the page scrolls as a whole and no
 	   section gets its own scrollbar. */
 	@media (max-width: 1100px) {
+		/* Rarely used sections first (collapsed), then search and cart together. */
+		.section-preis {
+			order: 1;
+		}
+
+		.section-rabatt {
+			order: 2;
+		}
+
+		.section-anzahlung {
+			order: 3;
+		}
+
+		.section-artikel {
+			order: 4;
+		}
+
 		main {
 			flex: none;
 			overflow: visible;
