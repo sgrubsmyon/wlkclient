@@ -1,5 +1,7 @@
 <script lang="ts">
 	import {
+		BanknoteArrowDown,
+		BanknoteArrowUp,
 		Barcode,
 		CircleHelp,
 		CirclePercent,
@@ -32,6 +34,10 @@
 	let nameFeld: Suchfeld | undefined = $state();
 	let preisModal = $state<Artikel | null>(null);
 	let preisEingabe = $state('');
+	let anzahlungModal = $state<'neu' | 'aufloesen' | null>(null);
+	let anzahlungEingabe = $state('');
+	let offeneAnzahlungen = $state<{ nr: number; datum: string; betrag: number }[]>([]);
+	let anzahlungLaden = $state(false);
 
 	const modi = [
 		{ value: 'normal', label: 'Normal' },
@@ -41,12 +47,17 @@
 
 	const mwstZeilen = $derived(store.summen?.mwst ?? []);
 	const canPercent = $derived(
-		store.staged
-			? store.hasUndiscountedArticle
-			: store.selectedSources.some((row) => row.kind === 'artikel')
+		!store.depositActive &&
+			(store.staged
+				? store.hasUndiscountedArticle
+				: store.selectedSources.some((row) => row.kind === 'artikel'))
 	);
-	const canSingle = $derived(!store.staged && store.selectedSources.length === 1);
-	const canMitarbeiter = $derived(store.staged && store.hasUndiscountedArticle);
+	const canSingle = $derived(
+		!store.depositActive && !store.staged && store.selectedSources.length === 1
+	);
+	const canMitarbeiter = $derived(
+		!store.depositActive && store.staged && store.hasUndiscountedArticle
+	);
 	const prozentWerte = [5, 10, 15, 20, 25];
 
 	let rabattProzent = $state('');
@@ -57,6 +68,7 @@
 		error = null;
 		try {
 			await action();
+			await store.refreshDeposit();
 		} catch (caught) {
 			error = caught instanceof Error ? caught.message : String(caught);
 		}
@@ -132,6 +144,51 @@
 		const found = await api<Artikel[]>(`artikel/?artikel_nr=${nr}&limit=1`);
 		if (!found.length) throw new Error(`Artikel ${nr} nicht gefunden`);
 		await addArtikel(found[0]);
+	}
+
+	async function neueAnzahlung() {
+		const betrag = parseDecimal(anzahlungEingabe);
+		if (betrag == null || betrag <= 0) {
+			error = 'Bitte einen Betrag größer als 0 eingeben.';
+			return;
+		}
+		anzahlungModal = null;
+		anzahlungEingabe = '';
+		await run(() => store.previewAnzahlung(betrag, null));
+	}
+
+	async function openAnzahlungenLaden() {
+		anzahlungLaden = true;
+		error = null;
+		try {
+			const offen = await api<{ anzahlung_in_rech_nr: number; datum: string }[]>('anzahlung/offen');
+			offeneAnzahlungen = await Promise.all(
+				offen.map(async (eintrag) => {
+					const verkauf = await api<{ verkauf_details?: { ges_preis: number }[] }>(
+						`verkauf/${eintrag.anzahlung_in_rech_nr}`
+					);
+					const betrag = (verkauf.verkauf_details ?? []).reduce(
+						(summe, detail) => summe + detail.ges_preis,
+						0
+					);
+					return { nr: eintrag.anzahlung_in_rech_nr, datum: eintrag.datum, betrag };
+				})
+			);
+		} catch (caught) {
+			error = caught instanceof Error ? caught.message : String(caught);
+		} finally {
+			anzahlungLaden = false;
+		}
+	}
+
+	async function anzahlungAufloesen(nr: number) {
+		anzahlungModal = null;
+		await run(() => store.previewAnzahlung(null, nr));
+	}
+
+	function closeAnzahlungModal() {
+		anzahlungModal = null;
+		anzahlungEingabe = '';
 	}
 
 	function closePreisModal() {
@@ -302,6 +359,43 @@
 					</button>
 				</div>
 			</section>
+
+			<section>
+				<h3><BanknoteArrowUp size={20} /> Anzahlung</h3>
+				<div class="anzahlung-buttons">
+					<button
+						type="button"
+						onclick={() => {
+							anzahlungModal = 'neu';
+							anzahlungEingabe = '';
+						}}
+					>
+						<BanknoteArrowUp size={18} /> Neue Anzahlung
+					</button>
+					<button
+						type="button"
+						onclick={() => {
+							anzahlungModal = 'aufloesen';
+							offeneAnzahlungen = [];
+							void openAnzahlungenLaden();
+						}}
+					>
+						<BanknoteArrowDown size={18} /> Anzahlung auflösen
+					</button>
+				</div>
+				{#if store.depositActive}
+					<div class="anzahlung-info">
+						<span>
+							{store.anzahlungBetrag != null
+								? `Neue Anzahlung über ${euro(store.anzahlungBetrag)} €`
+								: `Anzahlung aus Rechnung Nr. ${store.anzahlungAufloesenNr}`}
+						</span>
+						<button type="button" onclick={() => run(() => store.previewAnzahlung(null, null))}>
+							Abbrechen
+						</button>
+					</div>
+				{/if}
+			</section>
 		</div>
 
 		<div class="warenkorb">
@@ -347,6 +441,46 @@
 		</div>
 	</div>
 </main>
+
+<Modal open={anzahlungModal === 'neu'} title="Neue Anzahlung" onclose={closeAnzahlungModal}>
+	<div class="preis-zeile">
+		<TextInput
+			bind:value={anzahlungEingabe}
+			placeholder="Betrag"
+			inputmode="decimal"
+			onenter={neueAnzahlung}
+		/>
+		<span>€</span>
+	</div>
+	<div class="modal-actions">
+		<button type="button" class="secondary" onclick={closeAnzahlungModal}>Abbrechen</button>
+		<button type="button" class="primary" onclick={neueAnzahlung}>Übernehmen</button>
+	</div>
+</Modal>
+
+<Modal
+	open={anzahlungModal === 'aufloesen'}
+	title="Anzahlung auflösen"
+	onclose={() => (anzahlungModal = null)}
+>
+	{#if anzahlungLaden}
+		<p class="hint">Lade offene Anzahlungen…</p>
+	{:else if !offeneAnzahlungen.length}
+		<p class="hint">Es gibt keine offenen Anzahlungen.</p>
+	{:else}
+		<ul class="anzahlung-liste">
+			{#each offeneAnzahlungen as eintrag (eintrag.nr)}
+				<li>
+					<button type="button" onclick={() => anzahlungAufloesen(eintrag.nr)}>
+						<span>Rechnung Nr. {eintrag.nr}</span>
+						<span>{new Date(eintrag.datum).toLocaleDateString('de-DE')}</span>
+						<span>{euro(eintrag.betrag)} €</span>
+					</button>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+</Modal>
 
 <Modal open={preisModal != null} title="Preis eingeben" onclose={closePreisModal}>
 	<p class="hint">{preisModal?.artikel_name}</p>
@@ -596,6 +730,77 @@
 		background-color: var(--input-bg);
 		color: var(--text);
 		font: inherit;
+	}
+
+	.anzahlung-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.anzahlung-buttons button {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.4rem 0.7rem;
+		border: 1px solid var(--border);
+		border-radius: 0.375rem;
+		background-color: var(--surface);
+		color: var(--text);
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.anzahlung-buttons button:hover {
+		background-color: var(--primary);
+		color: #000;
+	}
+
+	.anzahlung-info {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.4rem 0.6rem;
+		border-radius: 0.375rem;
+		background-color: color-mix(in srgb, var(--alert-info) 15%, var(--surface));
+		font-size: 0.9rem;
+	}
+
+	.anzahlung-info button {
+		padding: 0.2rem 0.6rem;
+		border: 1px solid var(--border);
+		border-radius: 0.25rem;
+		background: transparent;
+		color: var(--text);
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.anzahlung-liste {
+		margin: 0.75rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.anzahlung-liste button {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		width: 100%;
+		padding: 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: 0.375rem;
+		margin-bottom: 0.35rem;
+		background: transparent;
+		color: var(--text);
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.anzahlung-liste button:hover {
+		background-color: var(--primary);
+		color: #000;
 	}
 
 	.preis-zeile {

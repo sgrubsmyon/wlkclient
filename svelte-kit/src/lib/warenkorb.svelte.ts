@@ -12,12 +12,24 @@ export class WarenkorbStore {
 	summen = $state<Summen | null>(null);
 	rechnungRabatt = $state<RabattSpec | null>(null);
 	gutschein = $state<{ nr: number; betrag: number; restbetrag: number } | null>(null);
+	anzahlungBetrag = $state<number | null>(null);
+	anzahlungAufloesenNr = $state<number | null>(null);
+	depositPreview = $state<Position[] | null>(null);
 	staged = $state(false);
 	tseTransactionId = $state<number | null>(null);
 	busy = $state(false);
 
 	get sources() {
 		return this.positionen.filter((row) => !row.parent_ref && row.kind !== 'rechnung_rabatt');
+	}
+
+	/** Rows to render: the deposit preview while one is configured. */
+	get displayPositionen() {
+		return this.depositPreview ?? this.positionen;
+	}
+
+	get depositActive() {
+		return this.anzahlungBetrag != null || this.anzahlungAufloesenNr != null;
 	}
 
 	get artikelRows() {
@@ -61,7 +73,7 @@ export class WarenkorbStore {
 		}
 		this.summen = await api<Summen>('warenkorb/summen', {
 			method: 'POST',
-			body: JSON.stringify({ positionen: this.positionen, kunde_gibt: kundeGibt })
+			body: JSON.stringify({ positionen: this.displayPositionen, kunde_gibt: kundeGibt })
 		});
 	}
 
@@ -137,6 +149,9 @@ export class WarenkorbStore {
 		this.rechnungRabatt = null;
 		this.staged = false;
 		this.gutschein = null;
+		this.anzahlungBetrag = null;
+		this.anzahlungAufloesenNr = null;
+		this.depositPreview = null;
 	}
 
 	private replaceTree(ref: string, rows: Position[]) {
@@ -264,6 +279,42 @@ export class WarenkorbStore {
 		if (refresh) await this.refresh();
 	}
 
+	// --- deposit (Anzahlung) ---------------------------------------------
+
+	/** Preview a new deposit or the resolution of an open one. */
+	async previewAnzahlung(betrag: number | null, aufloesenNr: number | null) {
+		this.anzahlungBetrag = betrag;
+		this.anzahlungAufloesenNr = aufloesenNr;
+		if (betrag == null && aufloesenNr == null) {
+			this.depositPreview = null;
+		} else {
+			this.depositPreview = await api<Position[]>('warenkorb/anzahlung', {
+				method: 'POST',
+				body: JSON.stringify({
+					positionen: this.artikelRows.map((row) => ({
+						ref: row.ref,
+						artikel_id: row.artikel_id,
+						stueckzahl: row.stueckzahl,
+						ges_preis: row.variabler_preis || row.preis_override ? row.ges_preis : undefined,
+						rabatt_id: row.rabatt_id,
+						rabatt_absolut: row.rabatt_absolut
+					})),
+					betrag,
+					aufloesen_nr: aufloesenNr,
+					rechnung_rabatt_relativ: this.rechnungRabatt?.wert ?? null
+				})
+			});
+		}
+		this.selected = [];
+		await this.refresh();
+	}
+
+	/** Recompute the deposit preview after a cart change. */
+	async refreshDeposit() {
+		if (!this.depositActive) return;
+		await this.previewAnzahlung(this.anzahlungBetrag, this.anzahlungAufloesenNr);
+	}
+
 	// --- voucher ---------------------------------------------------------
 
 	addGutschein(nr: number, betrag: number, restbetrag: number) {
@@ -343,6 +394,9 @@ export class WarenkorbStore {
 		this.gutschein = null;
 		this.staged = false;
 		this.tseTransactionId = null;
+		this.anzahlungBetrag = null;
+		this.anzahlungAufloesenNr = null;
+		this.depositPreview = null;
 		return verkauf;
 	}
 }

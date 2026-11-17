@@ -9,6 +9,7 @@
 	let {
 		position,
 		selected,
+		readonly = false,
 		onselect,
 		onquantity,
 		onremove,
@@ -16,6 +17,7 @@
 	}: {
 		position: Position;
 		selected: boolean;
+		readonly?: boolean;
 		onselect: () => void;
 		onquantity: (ref: string, stueckzahl: number) => void;
 		onremove: (ref: string) => void;
@@ -23,7 +25,8 @@
 	} = $props();
 
 	const isChild = $derived(position.parent_ref != null);
-	const editablePrice = $derived(position.variabler_preis && !isChild);
+	const interactive = $derived(!isChild && !readonly);
+	const editablePrice = $derived(position.variabler_preis && !isChild && !readonly);
 	const total = $derived(euro(position.ges_preis));
 </script>
 
@@ -32,11 +35,11 @@
 	class="row {position.kind}"
 	class:selected
 	class:child={isChild}
-	role={isChild ? undefined : 'button'}
-	tabindex={isChild ? undefined : 0}
-	onclick={() => !isChild && onselect()}
+	role={interactive ? 'button' : undefined}
+	tabindex={interactive ? 0 : undefined}
+	onclick={() => interactive && onselect()}
 	onkeydown={(event) => {
-		if (!isChild && (event.key === 'Enter' || event.key === ' ')) onselect();
+		if (interactive && (event.key === 'Enter' || event.key === ' ')) onselect();
 	}}
 >
 	{#if !isChild}
@@ -80,7 +83,7 @@
 				<span class="kind">{position.kind === 'pfand' ? 'Pfand' : position.artikel_name}</span>
 			{/if}
 
-			{#if !isChild}
+			{#if interactive}
 				<div
 					class="qty"
 					onclick={(event) => event.stopPropagation()}

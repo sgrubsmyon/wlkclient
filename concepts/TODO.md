@@ -136,11 +136,11 @@ Contract sketch (agree and document in the server OpenAPI docs):
 
 ## M6 – Kassieren: Anzahlung
 
-- [ ] Specify the deposit flow in `IMPLEMENTATION_PLAN.md` (new deposit during checkout, resolving an open deposit, interaction with cart and totals)
-- [ ] "Neue Anzahlung" button: amount input, sets `anzahlung_betrag` for the sale, totals and cart preview reflect the split across VAT rates
-- [ ] "Anzahlung auflösen" button: list open deposits (`GET /anzahlung/offen`, `GET /anzahlung/{id}/details`), select one, set `anzahlung_aufloesen_nr`
-- [ ] Show the resulting Anzahlung/Anzahlungsauflösung rows in the cart preview
-- [ ] Handle validation errors from the API (amount larger than cart, already resolved deposit)
+- [x] Specify the deposit flow in `IMPLEMENTATION_PLAN.md` (new deposit during checkout, resolving an open deposit, interaction with cart and totals)
+- [x] "Neue Anzahlung" button: amount input, sets `anzahlung_betrag` for the sale, totals and cart preview reflect the split across VAT rates
+- [x] "Anzahlung auflösen" button: list open deposits (`GET /anzahlung/offen`, `GET /anzahlung/{id}/details`), select one, set `anzahlung_aufloesen_nr`
+- [x] Show the resulting Anzahlung/Anzahlungsauflösung rows in the cart preview
+- [x] Handle validation errors from the API (amount larger than cart, already resolved deposit)
 
 ## M7 – Kassieren: payment and sale completion
 
