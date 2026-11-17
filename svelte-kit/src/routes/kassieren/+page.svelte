@@ -423,10 +423,12 @@
 						onselect={addArtikel}
 					>
 						{#snippet children(artikel)}
-							<Thumbnail artikelId={artikel.artikel_id} size={thumbnailSize} />
-							<span class="artikel-name">{artikel.artikel_name}</span>
-							<em class="kurzname">{artikel.lieferant_kurzname ?? artikel.lieferant_name}</em>
-							<strong class="preis">{euro(artikel.vk_preis)}</strong>
+							<span class="treffer-inhalt" class:ausverkauft={!artikel.sortiment}>
+								<Thumbnail artikelId={artikel.artikel_id} size={thumbnailSize} />
+								<span class="artikel-name">{artikel.artikel_name}</span>
+								<em class="kurzname">{artikel.lieferant_kurzname ?? artikel.lieferant_name}</em>
+								<strong class="preis">{euro(artikel.vk_preis)}</strong>
+							</span>
 						{/snippet}
 					</Suchfeld>
 				</div>
@@ -943,6 +945,19 @@
 		.abschluss {
 			margin-top: 0.25rem;
 		}
+	}
+
+	/* Articles that are not part of the sortiment appear grey. */
+	.treffer-inhalt {
+		display: contents;
+	}
+
+	.ausverkauft {
+		color: #8a8a8a;
+	}
+
+	:global(button.active) .ausverkauft {
+		color: #fff;
 	}
 
 	/* Long article names are clamped to two lines inside the search results. */

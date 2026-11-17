@@ -6,6 +6,7 @@ export type Artikel = {
 	barcode: string | null;
 	vk_preis: number | null;
 	variabler_preis: boolean;
+	sortiment: boolean;
 	lieferant_name: string;
 	lieferant_kurzname: string | null;
 	produktgruppen_name: string;

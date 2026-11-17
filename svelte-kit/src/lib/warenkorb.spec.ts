@@ -10,6 +10,7 @@ const artikel: Artikel = {
 	barcode: '123',
 	vk_preis: 2.5,
 	variabler_preis: false,
+	sortiment: true,
 	lieferant_name: 'Hof',
 	lieferant_kurzname: 'HOF',
 	produktgruppen_name: 'Obst',
