@@ -125,14 +125,14 @@ Contract sketch (agree and document in the server OpenAPI docs):
 
 ## M5 – Kassieren: discounts
 
-- [ ] Section "Rabatt auf ausgewählte Artikel" with buttons 5/10/15/20/25 %, "Mitarbeiter" and inputs for "individuell %", "individuell €", "Abweichender Preis"
-- [ ] Enablement rules: with ≥1 selected article the percent buttons and "individuell %" are enabled; with exactly 1 selected article "individuell €" and "Abweichender Preis" are also enabled; otherwise disabled
-- [ ] Discount actions call `POST /warenkorb/rabatt` and insert/replace the Rabatt child rows below each selected article (same `stueckzahl` as the article)
-- [ ] "Abweichender Preis" sets the row's `ges_preis` (via the API) and hides the regular price display accordingly
-- [ ] Recompute child rows when the parent quantity changes; never discount an article twice
-- [ ] "Zur Zahlung" enables the receipt-level discounts (5–25 %, "individuell %", "Mitarbeiter"); they create "Rabatt auf Rechnung" rows at the end of the cart and skip already discounted articles
-- [ ] Display the discount total in the totals panel
-- [ ] Tests for rounding, double-discount prevention and receipt-discount exclusion
+- [x] Section "Rabatt auf ausgewählte Artikel" with buttons 5/10/15/20/25 %, "Mitarbeiter" and inputs for "individuell %", "individuell €", "Abweichender Preis"
+- [x] Enablement rules: with ≥1 selected article the percent buttons and "individuell %" are enabled; with exactly 1 selected article "individuell €" and "Abweichender Preis" are also enabled; otherwise disabled
+- [x] Discount actions call `POST /warenkorb/rabatt` and insert/replace the Rabatt child rows below each selected article (same `stueckzahl` as the article)
+- [x] "Abweichender Preis" sets the row's `ges_preis` (via the API) and hides the regular price display accordingly
+- [x] Recompute child rows when the parent quantity changes; never discount an article twice
+- [x] "Zur Zahlung" enables the receipt-level discounts (5–25 %, "individuell %", "Mitarbeiter"); they create "Rabatt auf Rechnung" rows at the end of the cart and skip already discounted articles
+- [x] Display the discount total in the totals panel
+- [x] Tests for rounding, double-discount prevention and receipt-discount exclusion
 
 ## M6 – Kassieren: Anzahlung
 

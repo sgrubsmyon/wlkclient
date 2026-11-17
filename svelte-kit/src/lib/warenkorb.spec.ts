@@ -132,6 +132,29 @@ describe('WarenkorbStore', () => {
 		expect(store.selected).toHaveLength(0);
 	});
 
+	it('inserts discount rows below the selected article', async () => {
+		responses['warenkorb/hinzufuegen'] = [row({ ges_preis: 10, einzelpreis: 10 })];
+		const store = new WarenkorbStore();
+		await store.add(artikel, 'normal');
+		store.toggleSelected('r1');
+
+		responses['warenkorb/rabatt'] = [
+			row({ ges_preis: 10, einzelpreis: 10, rabatt_absolut: 1, hat_rabatt: true }),
+			row({
+				ref: 'r1-rabatt-1',
+				parent_ref: 'r1',
+				kind: 'rabatt',
+				ges_preis: -1,
+				einzelpreis: -1
+			})
+		];
+		await store.applyRabatt({ art: 'relativ', wert: 0.1 });
+
+		expect(store.positionen.map((position) => position.kind)).toEqual(['artikel', 'rabatt']);
+		expect(store.positionen[0].rabatt_absolut).toBe(1);
+		expect(store.saleDetails()).toEqual([{ artikel_id: 1, stueckzahl: 1, rabatt_absolut: 1 }]);
+	});
+
 	it('builds the sale payload from source rows only', async () => {
 		responses['warenkorb/hinzufuegen'] = [
 			row({ rabatt_absolut: 0.25 }),

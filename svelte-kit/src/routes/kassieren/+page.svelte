@@ -2,6 +2,7 @@
 	import {
 		Barcode,
 		CircleHelp,
+		CirclePercent,
 		Gift,
 		Hash,
 		ListOrdered,
@@ -39,6 +40,18 @@
 	];
 
 	const mwstZeilen = $derived(store.summen?.mwst ?? []);
+	const canPercent = $derived(
+		store.staged
+			? store.hasUndiscountedArticle
+			: store.selectedSources.some((row) => row.kind === 'artikel')
+	);
+	const canSingle = $derived(!store.staged && store.selectedSources.length === 1);
+	const canMitarbeiter = $derived(store.staged && store.hasUndiscountedArticle);
+	const prozentWerte = [5, 10, 15, 20, 25];
+
+	let rabattProzent = $state('');
+	let rabattEuro = $state('');
+	let abweichenderPreis = $state('');
 
 	async function run(action: () => Promise<void>) {
 		error = null;
@@ -71,6 +84,48 @@
 			await store.add(artikel, modus);
 			barcodeFeld?.focus();
 		});
+	}
+
+	async function prozentRabatt(wert: number) {
+		await run(async () => {
+			const spec = { art: 'relativ' as const, wert };
+			if (store.staged) await store.applyRechnungRabatt(spec);
+			else await store.applyRabatt(spec);
+		});
+	}
+
+	async function individuellProzent() {
+		const wert = parseDecimal(rabattProzent);
+		if (wert == null || wert <= 0 || wert >= 100) {
+			error = 'Bitte einen Rabatt zwischen 0 und 100 % eingeben.';
+			return;
+		}
+		rabattProzent = '';
+		await prozentRabatt(wert / 100);
+	}
+
+	async function individuellEuro() {
+		const wert = parseDecimal(rabattEuro);
+		if (wert == null || wert <= 0) {
+			error = 'Bitte einen Rabatt größer als 0 eingeben.';
+			return;
+		}
+		const selected = store.selectedSources[0];
+		if (!selected) return;
+		rabattEuro = '';
+		await run(() => store.applyRabatt({ art: 'absolut', wert }));
+	}
+
+	async function abweichendenPreisSetzen() {
+		const wert = parseDecimal(abweichenderPreis);
+		if (wert == null || wert <= 0) {
+			error = 'Bitte einen Preis größer als 0 eingeben.';
+			return;
+		}
+		const selected = store.selectedSources[0];
+		if (!selected) return;
+		abweichenderPreis = '';
+		await run(() => store.applyAbweichenderPreis(selected.ref, wert));
 	}
 
 	async function artikelByNr(nr: string) {
@@ -192,6 +247,58 @@
 					</button>
 					<button type="button" onclick={() => run(() => artikelByNr('SONSTIGES2'))}>
 						19% MwSt
+					</button>
+				</div>
+			</section>
+
+			<section>
+				<h3><CirclePercent size={20} /> Rabatt auf ausgewählte Artikel</h3>
+				<div class="rabatt-buttons">
+					{#each prozentWerte as prozent (prozent)}
+						<button
+							type="button"
+							disabled={!canPercent}
+							onclick={() => prozentRabatt(prozent / 100)}
+						>
+							{prozent}%
+						</button>
+					{/each}
+					<button type="button" disabled={!canMitarbeiter} onclick={() => prozentRabatt(0.1)}>
+						Mitarbeiter
+					</button>
+				</div>
+				<div class="individuell">
+					<label for="rabatt-prozent">individuell:</label>
+					<input
+						id="rabatt-prozent"
+						bind:value={rabattProzent}
+						disabled={!canPercent}
+						placeholder="%"
+						inputmode="decimal"
+					/>
+					<span>%</span>
+					<button type="button" disabled={!canPercent} onclick={individuellProzent}>OK</button>
+					<label for="rabatt-euro">individuell:</label>
+					<input
+						id="rabatt-euro"
+						bind:value={rabattEuro}
+						disabled={!canSingle}
+						placeholder="€"
+						inputmode="decimal"
+					/>
+					<span>€</span>
+					<button type="button" disabled={!canSingle} onclick={individuellEuro}>OK</button>
+					<label for="abweichender-preis">Abweichender Preis:</label>
+					<input
+						id="abweichender-preis"
+						bind:value={abweichenderPreis}
+						disabled={!canSingle}
+						placeholder="€"
+						inputmode="decimal"
+					/>
+					<span>€</span>
+					<button type="button" disabled={!canSingle} onclick={abweichendenPreisSetzen}>
+						OK
 					</button>
 				</div>
 			</section>
@@ -443,6 +550,52 @@
 	.grid-buttons button:hover {
 		background-color: var(--primary);
 		color: #000;
+	}
+
+	.rabatt-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.rabatt-buttons button,
+	.individuell button {
+		padding: 0.35rem 0.7rem;
+		border: 1px solid var(--border);
+		border-radius: 0.375rem;
+		background-color: var(--surface);
+		color: var(--text);
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.rabatt-buttons button:hover:not(:disabled),
+	.individuell button:hover:not(:disabled) {
+		background-color: var(--primary);
+		color: #000;
+	}
+
+	.rabatt-buttons button:disabled,
+	.individuell button:disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+
+	.individuell {
+		display: grid;
+		grid-template-columns: auto 5rem auto auto;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.individuell input {
+		width: 100%;
+		padding: 0.25rem 0.4rem;
+		border: 1px solid var(--border);
+		border-radius: 0.25rem;
+		background-color: var(--input-bg);
+		color: var(--text);
+		font: inherit;
 	}
 
 	.preis-zeile {
