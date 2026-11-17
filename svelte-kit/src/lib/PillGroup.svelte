@@ -2,11 +2,13 @@
 	let {
 		options,
 		value = $bindable(),
-		disabled = false
+		disabled = false,
+		onchange
 	}: {
 		options: { value: string; label: string }[];
 		value?: string;
 		disabled?: boolean;
+		onchange?: (value: string) => void;
 	} = $props();
 </script>
 
@@ -18,7 +20,10 @@
 			aria-checked={value === option.value}
 			class:active={value === option.value}
 			{disabled}
-			onclick={() => (value = option.value)}
+			onclick={() => {
+				value = option.value;
+				onchange?.(option.value);
+			}}
 		>
 			{option.label}
 		</button>

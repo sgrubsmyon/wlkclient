@@ -144,14 +144,14 @@ Contract sketch (agree and document in the server OpenAPI docs):
 
 ## M7 – Kassieren: payment and sale completion
 
-- [ ] "Zur Zahlung" button (Selection blue): stages the sale, enables receipt discount and payment controls; totals show "ZU ZAHLEN"
-- [ ] TSE transaction: start with the first article (`POST /tse/transaction/start`), pass `tse_transaction_id` on completion, abort on "Alles löschen"
-- [ ] Payment method pills "Bar" / "Karte" (default "Bar", primary colour when active)
-- [ ] "Gutschein" button (FATAL colour) opens a modal: enter Gutschein-Nr. and amount, look up via `GET /gutschein/?gutschein_nr=`, show remaining/initial amount and purchase date, block amounts above the balance, add a `GUTSCHEINEINLOES` row on success
-- [ ] Cash area (only for "Bar"): "KUNDE GIBT" input and read-only "Rückgeld" computed by the API
-- [ ] "Buchung abschließen" (Weltladen green): map cart rows to `VerkaufCreate` (`verkauf_details` with `artikel_id`, `stueckzahl`, `ges_preis`, `rabatt_absolut`, `rabatt_id`) plus `rechnung_rabatt_relativ`, `gutschein_einloesung_nr/betrag`, `anzahlung_*`, `tse_transaction_id` and `POST /verkauf/`
-- [ ] Handle response: `change` (cash return), `ec_warning`, API errors; on success clear cart, reset payment state, refocus barcode
-- [ ] Tests for the cart → sale payload mapping (mocked API)
+- [x] "Zur Zahlung" button (Selection blue): stages the sale, enables receipt discount and payment controls; totals show "ZU ZAHLEN"
+- [x] TSE transaction: start with the first article (`POST /tse/transaction/start`), pass `tse_transaction_id` on completion, abort on "Alles löschen"
+- [x] Payment method pills "Bar" / "Karte" (default "Bar", primary colour when active)
+- [x] "Gutschein" button (FATAL colour) opens a modal: enter Gutschein-Nr. and amount, look up via `GET /gutschein/?gutschein_nr=`, show remaining/initial amount and purchase date, block amounts above the balance, add a `GUTSCHEINEINLOES` row on success
+- [x] Cash area (only for "Bar"): "KUNDE GIBT" input and read-only "Rückgeld" computed by the API
+- [x] "Buchung abschließen" (Weltladen green): map cart rows to `VerkaufCreate` (`verkauf_details` with `artikel_id`, `stueckzahl`, `ges_preis`, `rabatt_absolut`, `rabatt_id`) plus `rechnung_rabatt_relativ`, `gutschein_einloesung_nr/betrag`, `anzahlung_*`, `tse_transaction_id` and `POST /verkauf/`
+- [x] Handle response: `change` (cash return), `ec_warning`, API errors; on success clear cart, reset payment state, refocus barcode
+- [x] Tests for the cart → sale payload mapping (mocked API)
 
 ## M8 – Profil, password change, theme persistence, Benutzer management
 

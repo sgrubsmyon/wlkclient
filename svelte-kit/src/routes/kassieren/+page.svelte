@@ -1,10 +1,13 @@
 <script lang="ts">
 	import {
+		BadgeEuro,
 		BanknoteArrowDown,
 		BanknoteArrowUp,
 		Barcode,
 		CircleHelp,
+		Check,
 		CirclePercent,
+		CreditCard,
 		Gift,
 		Hash,
 		ListOrdered,
@@ -23,7 +26,7 @@
 	import { euro, parseDecimal } from '#lib/format.js';
 	import { thumbnailSize } from '#lib/theme.js';
 	import { WarenkorbStore } from '#lib/warenkorb.svelte.js';
-	import type { Artikel } from '#lib/types.js';
+	import type { Artikel, Gutschein } from '#lib/types.js';
 
 	const store = new WarenkorbStore();
 
@@ -38,6 +41,20 @@
 	let anzahlungEingabe = $state('');
 	let offeneAnzahlungen = $state<{ nr: number; datum: string; betrag: number }[]>([]);
 	let anzahlungLaden = $state(false);
+	let ecZahlung = $state(false);
+	let kundeGibt = $state('');
+	let gutscheinModal = $state(false);
+	let gutscheinNr = $state('');
+	let gutscheinBetrag = $state('');
+	let gutscheinSuche = $state<Gutschein | null>(null);
+	let gutscheinFehler = $state<string | null>(null);
+
+	const zahlungsarten = [
+		{ value: 'bar', label: 'Bar' },
+		{ value: 'karte', label: 'Karte' }
+	];
+	const zahlungsart = $derived(ecZahlung ? 'karte' : 'bar');
+	const kundeGibtWert = $derived(parseDecimal(kundeGibt));
 
 	const modi = [
 		{ value: 'normal', label: 'Normal' },
@@ -191,6 +208,104 @@
 		anzahlungEingabe = '';
 	}
 
+	async function zurZahlung() {
+		if (store.isEmpty) {
+			error = 'Der Warenkorb ist leer.';
+			return;
+		}
+		store.staged = true;
+		await refreshTotals();
+	}
+
+	async function refreshTotals() {
+		error = null;
+		try {
+			await store.refresh(kundeGibtWert);
+		} catch (caught) {
+			error = caught instanceof Error ? caught.message : String(caught);
+		}
+	}
+
+	function setZahlungsart(art: string) {
+		ecZahlung = art === 'karte';
+		if (ecZahlung) kundeGibt = '';
+		void refreshTotals();
+	}
+
+	async function gutscheinSuchen() {
+		gutscheinFehler = null;
+		gutscheinSuche = null;
+		const nr = Number.parseInt(gutscheinNr, 10);
+		if (!Number.isFinite(nr)) {
+			gutscheinFehler = 'Bitte eine Gutschein-Nr. eingeben.';
+			return;
+		}
+		try {
+			const treffer = await api<Gutschein[]>(`gutschein/?gutschein_nr=${nr}&limit=100`);
+			if (!treffer.length) {
+				gutscheinFehler = 'Gutschein nicht gefunden.';
+				return;
+			}
+			const aktuell = treffer.reduce((a, b) => (a.gutschein_id > b.gutschein_id ? a : b));
+			const ausstehend = await api<Gutschein[]>('gutschein/ausstehend');
+			const anfang = ausstehend.find((g) => g.gutschein_nr === nr);
+			gutscheinSuche = {
+				...aktuell,
+				restbetrag_anfang: anfang?.restbetrag_anfang ?? aktuell.restbetrag
+			};
+		} catch (caught) {
+			gutscheinFehler = caught instanceof Error ? caught.message : String(caught);
+		}
+	}
+
+	async function gutscheinUebernehmen() {
+		gutscheinFehler = null;
+		if (!gutscheinSuche) {
+			gutscheinFehler = 'Bitte zuerst den Gutschein suchen.';
+			return;
+		}
+		const betrag = parseDecimal(gutscheinBetrag);
+		if (betrag == null || betrag <= 0) {
+			gutscheinFehler = 'Bitte einen Betrag größer als 0 eingeben.';
+			return;
+		}
+		if (betrag > gutscheinSuche.restbetrag) {
+			gutscheinFehler = `Der Gutschein hat nur noch ${euro(gutscheinSuche.restbetrag)} € Guthaben.`;
+			return;
+		}
+		store.addGutschein(gutscheinSuche.gutschein_nr, betrag, gutscheinSuche.restbetrag);
+		gutscheinModal = false;
+		gutscheinSuche = null;
+		gutscheinNr = '';
+		gutscheinBetrag = '';
+		await refreshTotals();
+	}
+
+	async function buchungAbschliessen() {
+		error = null;
+		info = null;
+		try {
+			const verkauf = await store.abschliessen({
+				ecZahlung,
+				kundeGibt: ecZahlung ? null : (kundeGibtWert ?? null),
+				anzahlungBetrag: store.anzahlungBetrag,
+				anzahlungAufloesenNr: store.anzahlungAufloesenNr
+			});
+			info = `Buchung abgeschlossen. Rechnung Nr. ${verkauf.rechnungs_nr}.`;
+			if (verkauf.change != null) {
+				info += ` Rückgeld: ${euro(verkauf.change)} €.`;
+			}
+			if (verkauf.ec_warning) info += ` ${verkauf.ec_warning}`;
+			kundeGibt = '';
+			ecZahlung = false;
+			gutscheinModal = false;
+			gutscheinSuche = null;
+			barcodeFeld?.focus();
+		} catch (caught) {
+			error = caught instanceof Error ? caught.message : String(caught);
+		}
+	}
+
 	function closePreisModal() {
 		preisModal = null;
 		preisEingabe = '';
@@ -309,7 +424,10 @@
 			</section>
 
 			<section>
-				<h3><CirclePercent size={20} /> Rabatt auf ausgewählte Artikel</h3>
+				<h3>
+					<CirclePercent size={20} />
+					{store.staged ? 'Rabatt auf Rechnung' : 'Rabatt auf ausgewählte Artikel'}
+				</h3>
 				<div class="rabatt-buttons">
 					{#each prozentWerte as prozent (prozent)}
 						<button
@@ -435,7 +553,75 @@
 					<div><span>Rabatte:</span><span>{euro(store.summen?.rabatte)} €</span></div>
 				</div>
 				<div class="zahlung">
-					<p class="hinweis">Zahlungsbereich in Arbeit.</p>
+					<button
+						type="button"
+						class="zur-zahlung"
+						disabled={store.isEmpty || store.staged}
+						onclick={zurZahlung}
+					>
+						<CreditCard size={20} /> Zur Zahlung
+					</button>
+
+					<div class="zeile">
+						<label for="zu-zahlen">ZU ZAHLEN:</label>
+						<input
+							id="zu-zahlen"
+							class="gross"
+							readonly
+							value={store.staged ? `${euro(store.summen?.zu_zahlen)} €` : ''}
+						/>
+					</div>
+
+					<div class="zeile">
+						<PillGroup
+							options={zahlungsarten}
+							value={zahlungsart}
+							disabled={!store.staged}
+							onchange={(value) => setZahlungsart(value)}
+						/>
+						<button
+							type="button"
+							class="gutschein"
+							disabled={!store.staged}
+							onclick={() => {
+								gutscheinModal = true;
+								gutscheinSuche = null;
+								gutscheinFehler = null;
+							}}
+						>
+							<BadgeEuro size={18} /> Gutschein
+						</button>
+					</div>
+
+					{#if !ecZahlung}
+						<div class="zeile">
+							<label for="kunde-gibt">KUNDE GIBT:</label>
+							<TextInput
+								bind:value={kundeGibt}
+								placeholder="Betrag"
+								inputmode="decimal"
+								disabled={!store.staged}
+								onchange={() => void refreshTotals()}
+								onenter={() => void refreshTotals()}
+							/>
+							<label for="rueckgeld">Rückgeld:</label>
+							<input
+								id="rueckgeld"
+								readonly
+								class="gross"
+								value={store.summen?.rueckgeld != null ? `${euro(store.summen.rueckgeld)} €` : ''}
+							/>
+						</div>
+					{/if}
+
+					<button
+						type="button"
+						class="abschluss"
+						disabled={!store.staged || store.isEmpty}
+						onclick={buchungAbschliessen}
+					>
+						<Check size={20} /> Buchung abschließen
+					</button>
 				</div>
 			</section>
 		</div>
@@ -480,6 +666,38 @@
 			{/each}
 		</ul>
 	{/if}
+</Modal>
+
+<Modal open={gutscheinModal} title="Gutschein einlösen" onclose={() => (gutscheinModal = false)}>
+	<div class="gutschein-form">
+		<label for="gutschein-nr">Gutschein-Nr.:</label>
+		<TextInput bind:value={gutscheinNr} inputmode="numeric" onenter={gutscheinSuchen} />
+		<button type="button" class="secondary" onclick={gutscheinSuchen}>Suchen</button>
+	</div>
+	{#if gutscheinSuche}
+		<dl class="gutschein-info">
+			<dt>Restbetrag</dt>
+			<dd>{euro(gutscheinSuche.restbetrag)} €</dd>
+			<dt>Ursprünglicher Betrag</dt>
+			<dd>{euro(gutscheinSuche.restbetrag_anfang)} €</dd>
+			<dt>Gekauft am</dt>
+			<dd>{new Date(gutscheinSuche.datum).toLocaleDateString('de-DE')}</dd>
+		</dl>
+		<div class="gutschein-form">
+			<label for="gutschein-betrag">Einlösen:</label>
+			<TextInput bind:value={gutscheinBetrag} inputmode="decimal" onenter={gutscheinUebernehmen} />
+			<span>€</span>
+		</div>
+	{/if}
+	{#if gutscheinFehler}
+		<p class="gutschein-fehler">{gutscheinFehler}</p>
+	{/if}
+	<div class="modal-actions">
+		<button type="button" class="secondary" onclick={() => (gutscheinModal = false)}>
+			Abbrechen
+		</button>
+		<button type="button" class="primary" onclick={gutscheinUebernehmen}>Einlösen</button>
+	</div>
 </Modal>
 
 <Modal open={preisModal != null} title="Preis eingeben" onclose={closePreisModal}>
@@ -654,12 +872,6 @@
 		gap: 0.5rem;
 	}
 
-	.hinweis {
-		margin: 0;
-		font-size: 0.85rem;
-		opacity: 0.7;
-	}
-
 	.grid-buttons {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
@@ -801,6 +1013,114 @@
 	.anzahlung-liste button:hover {
 		background-color: var(--primary);
 		color: #000;
+	}
+
+	.zur-zahlung {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 0.6rem;
+		border: none;
+		border-radius: 0.5rem;
+		background-color: var(--selection);
+		color: #fff;
+		font: inherit;
+		font-size: 1.1rem;
+		cursor: pointer;
+	}
+
+	.zur-zahlung:disabled {
+		opacity: 0.5;
+		cursor: default;
+	}
+
+	.zeile {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.zeile label {
+		font-size: 0.9rem;
+		font-weight: 600;
+		white-space: nowrap;
+	}
+
+	.zeile input.gross {
+		width: 100%;
+		padding: 0.35rem 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: 0.375rem;
+		background-color: var(--input-bg);
+		color: var(--text);
+		font-size: 1.2rem;
+		font-weight: 700;
+		text-align: right;
+	}
+
+	.gutschein {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.4rem 0.8rem;
+		border: none;
+		border-radius: 999px;
+		background-color: var(--alert-fatal);
+		color: #fff;
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.gutschein:disabled {
+		opacity: 0.5;
+		cursor: default;
+	}
+
+	.abschluss {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		margin-top: auto;
+		padding: 0.6rem;
+		border: none;
+		border-radius: 0.5rem;
+		background-color: var(--green);
+		color: #000;
+		font: inherit;
+		font-size: 1.1rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	.abschluss:disabled {
+		opacity: 0.5;
+		cursor: default;
+	}
+
+	.gutschein-form {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.6rem;
+	}
+
+	.gutschein-info {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.25rem 1rem;
+		margin: 0.75rem 0 0;
+	}
+
+	.gutschein-info dd {
+		margin: 0;
+		text-align: right;
+	}
+
+	.gutschein-fehler {
+		margin: 0.5rem 0 0;
+		color: var(--alert-error);
 	}
 
 	.preis-zeile {

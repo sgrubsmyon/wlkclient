@@ -155,6 +155,34 @@ describe('WarenkorbStore', () => {
 		expect(store.saleDetails()).toEqual([{ artikel_id: 1, stueckzahl: 1, rabatt_absolut: 1 }]);
 	});
 
+	it('sends the sale payload and resets the cart', async () => {
+		responses['warenkorb/hinzufuegen'] = [row()];
+		const store = new WarenkorbStore();
+		await store.add(artikel, 'normal');
+		store.addGutschein(5, 3, 10);
+		store.staged = true;
+		responses['verkauf/'] = { rechnungs_nr: 42, change: 16, ec_warning: null };
+
+		const verkauf = await store.abschliessen({
+			ecZahlung: false,
+			kundeGibt: 20,
+			anzahlungBetrag: null,
+			anzahlungAufloesenNr: null
+		});
+
+		const saleCall = calls.find((call) => call.url.endsWith('/verkauf/'));
+		expect(saleCall?.body).toMatchObject({
+			ec_zahlung: false,
+			kunde_gibt: 20,
+			gutschein_einloesung_nr: 5,
+			gutschein_einloesung_betrag: 3,
+			verkauf_details: [{ artikel_id: 1, stueckzahl: 1 }]
+		});
+		expect(verkauf.rechnungs_nr).toBe(42);
+		expect(store.positionen).toHaveLength(0);
+		expect(store.gutschein).toBeNull();
+	});
+
 	it('builds the sale payload from source rows only', async () => {
 		responses['warenkorb/hinzufuegen'] = [
 			row({ rabatt_absolut: 0.25 }),
