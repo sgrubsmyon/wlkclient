@@ -731,17 +731,25 @@
 
 <style>
 	main {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		flex: 1;
+		box-sizing: border-box;
+		min-height: 0;
 		padding: 1rem;
+		overflow: hidden;
 	}
 
 	h1 {
-		margin: 0 0 1rem;
+		margin: 0;
 	}
 
 	.layout {
 		display: flex;
+		flex: 1;
 		gap: 1rem;
-		height: calc(100vh - 5rem);
+		min-height: 0;
 	}
 
 	.auswahl {
@@ -749,6 +757,7 @@
 		flex: 1 1 33%;
 		flex-direction: column;
 		gap: 1rem;
+		min-height: 0;
 		min-width: 22rem;
 		overflow-y: auto;
 	}
@@ -759,9 +768,11 @@
 		flex-direction: column;
 		gap: 1rem;
 		min-width: 0;
+		min-height: 0;
 	}
 
 	section {
+		box-sizing: border-box;
 		padding: 0.75rem;
 		border: 1px solid var(--border);
 		border-radius: 0.5rem;
@@ -770,6 +781,7 @@
 
 	.auswahl section {
 		display: flex;
+		flex-shrink: 0;
 		flex-direction: column;
 		gap: 0.6rem;
 	}
@@ -853,7 +865,7 @@
 	.summen {
 		display: flex;
 		gap: 1rem;
-		height: 350px;
+		height: 250px;
 		flex-shrink: 0;
 	}
 

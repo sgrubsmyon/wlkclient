@@ -121,6 +121,10 @@
 	}
 
 	.with-sidebar {
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		min-height: 100vh;
 		padding-left: var(--sidebar-width, 60px);
 	}
 
