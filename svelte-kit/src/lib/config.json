@@ -21,7 +21,8 @@
 			"--border": "#c9c2bc",
 			"--sidebar-bg": "#46403c",
 			"--sidebar-text": "#98918a",
-			"--sidebar-button": "#6b625b"
+			"--sidebar-button": "#6b625b",
+			"--sidebar-fg": "#cccccc"
 		},
 		"dark": {
 			"--primary": "#f4b03f",
@@ -35,7 +36,8 @@
 			"--border": "#5a5a5a",
 			"--sidebar-bg": "#252220",
 			"--sidebar-text": "#98918a",
-			"--sidebar-button": "#4a4540"
+			"--sidebar-button": "#4a4540",
+			"--sidebar-fg": "#cccccc"
 		}
 	}
 }

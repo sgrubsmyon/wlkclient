@@ -224,7 +224,7 @@
 		border: none;
 		border-radius: 20px;
 		background-color: var(--sidebar-button);
-		color: var(--text);
+		color: var(--sidebar-fg, #ccc);
 		font: inherit;
 		text-decoration: none;
 		cursor: pointer;
@@ -248,7 +248,7 @@
 		justify-content: center;
 		padding: 0;
 		background-color: transparent;
-		color: var(--sidebar-text);
+		color: var(--sidebar-fg, #ccc);
 	}
 
 	.profile {
