@@ -42,10 +42,22 @@ function row(overrides: Partial<Position> = {}): Position {
 
 const calls: { url: string; body: unknown }[] = [];
 let responses: Record<string, unknown>;
+let storage: Map<string, string>;
+
+function localStore() {
+	return {
+		getItem: (key: string) => storage.get(key) ?? null,
+		setItem: (key: string, value: string) => storage.set(key, String(value)),
+		removeItem: (key: string) => storage.delete(key),
+		clear: () => storage.clear()
+	};
+}
 
 beforeEach(() => {
 	calls.length = 0;
 	responses = {};
+	storage = new Map();
+	vi.stubGlobal('localStorage', localStore());
 	vi.stubGlobal(
 		'fetch',
 		vi.fn(async (url: string, init?: RequestInit) => {
@@ -182,6 +194,56 @@ describe('WarenkorbStore', () => {
 		expect(verkauf.rechnungs_nr).toBe(42);
 		expect(store.positionen).toHaveLength(0);
 		expect(store.gutschein).toBeNull();
+	});
+
+	it('persists and restores the cart of the same day', async () => {
+		responses['warenkorb/hinzufuegen'] = [
+			row(),
+			row({ ref: 'r1-pfand-1', parent_ref: 'r1', kind: 'pfand', artikel_id: 9 })
+		];
+		responses['warenkorb/summen'] = {
+			zwischensumme: 3,
+			rabatte: 0,
+			zu_zahlen: 3,
+			mwst: [],
+			rueckgeld: null
+		};
+		const store = new WarenkorbStore();
+		await store.add(artikel, 'normal');
+		store.toggleSelected('r1');
+		store.tseTransactionId = 42;
+		store.persist();
+		expect(storage.size).toBe(1);
+
+		const restored = new WarenkorbStore();
+		await restored.restore();
+		expect(restored.positionen).toHaveLength(2);
+		expect(restored.isSelected('r1')).toBe(true);
+		expect(restored.tseTransactionId).toBe(42);
+		expect(restored.summen?.zu_zahlen).toBe(3);
+	});
+
+	it('drops a cart from an earlier day', async () => {
+		storage.set(
+			'wlk-warenkorb',
+			JSON.stringify({ datum: '2000-01-01', positionen: [row()], selected: [] })
+		);
+		const store = new WarenkorbStore();
+		await store.restore();
+		expect(store.positionen).toHaveLength(0);
+		expect(storage.size).toBe(0);
+	});
+
+	it('removes the saved cart when cleared or sold', async () => {
+		responses['warenkorb/hinzufuegen'] = [row()];
+		const store = new WarenkorbStore();
+		await store.add(artikel, 'normal');
+		store.persist();
+		expect(storage.size).toBe(1);
+
+		await store.clear();
+		store.persist();
+		expect(storage.size).toBe(0);
 	});
 
 	it('builds the sale payload from source rows only', async () => {

@@ -344,7 +344,9 @@ The cart itself is client state, but all price, Pfand, discount and VAT rules li
 (`POST /warenkorb/hinzufuegen|leergut|rabatt|summen`). The client posts the current context and
 renders the returned rows. Quantity changes re-call `hinzufuegen` for the edited row and replace its
 children, so Pfand and Rabatt rows always follow the article. "Rückgabe" does not need an endpoint:
-the client negates the returned article rows itself.
+the client negates the returned article rows itself. The cart is mirrored to `localStorage` (dropped
+when the day changes, on "Alles löschen" and after the sale), so a reload, an app switch or leaving
+the page does not lose it.
 
 ### Sidebar
 

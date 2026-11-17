@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import {
 		BadgeEuro,
 		BanknoteArrowDown,
@@ -31,6 +32,17 @@
 	import type { Artikel, Gutschein } from '#lib/types.js';
 
 	const store = new WarenkorbStore();
+	let restored = $state(false);
+
+	onMount(async () => {
+		await store.restore();
+		restored = true;
+	});
+
+	// Keep a local copy, so a reload, an app switch or leaving the page keeps the cart.
+	$effect(() => {
+		if (restored) store.persist();
+	});
 
 	let modus = $state<'normal' | 'leergut' | 'rueckgabe'>('normal');
 	let error = $state<string | null>(null);

@@ -4,6 +4,12 @@ import type { Position, RabattSpec, Summen, Verkauf, Artikel } from '#lib/types.
 // `crypto.randomUUID` is only available in secure contexts; on a phone opening
 // the dev server via a LAN IP it is missing. Cart refs only need to be unique
 // inside one cart, so a counter suffices.
+const STORAGE_KEY = 'wlk-warenkorb';
+
+function today() {
+	return new Date().toISOString().slice(0, 10);
+}
+
 let refCounter = 0;
 
 function newRef() {
@@ -74,6 +80,82 @@ export class WarenkorbStore {
 
 	clearSelection() {
 		this.selected = [];
+	}
+
+	/** Store the cart locally so a reload, an app switch or a page change keeps it. */
+	persist() {
+		if (!this.positionen.length && !this.gutschein && !this.staged) {
+			this.clearStorage();
+			return;
+		}
+		try {
+			localStorage.setItem(
+				STORAGE_KEY,
+				JSON.stringify({
+					datum: today(),
+					positionen: this.positionen,
+					selected: this.selected,
+					rechnungRabatt: this.rechnungRabatt,
+					gutschein: this.gutschein,
+					anzahlungBetrag: this.anzahlungBetrag,
+					anzahlungAufloesenNr: this.anzahlungAufloesenNr,
+					depositPreview: this.depositPreview,
+					tseTransactionId: this.tseTransactionId,
+					staged: this.staged
+				})
+			);
+		} catch {
+			// storage disabled/full: the cart just stays in memory
+		}
+	}
+
+	clearStorage() {
+		try {
+			localStorage.removeItem(STORAGE_KEY);
+		} catch {
+			// ignore unavailable storage
+		}
+	}
+
+	/** Restore a cart saved on the same day; stale carts are dropped. */
+	async restore() {
+		let raw: string | null;
+		try {
+			raw = localStorage.getItem(STORAGE_KEY);
+		} catch {
+			return;
+		}
+		if (!raw) return;
+		try {
+			const data = JSON.parse(raw);
+			if (data?.datum !== today() || !Array.isArray(data.positionen)) {
+				this.clearStorage();
+				return;
+			}
+			this.positionen = data.positionen.filter(
+				(row: Position) =>
+					row && typeof row.ref === 'string' && Number.isFinite(Number(row.ges_preis))
+			);
+			const refs = this.positionen.map((row) => row.ref);
+			this.selected = Array.isArray(data.selected)
+				? data.selected.filter((ref: string) => refs.includes(ref))
+				: [];
+			this.rechnungRabatt = data.rechnungRabatt ?? null;
+			this.gutschein = data.gutschein ?? null;
+			this.anzahlungBetrag = data.anzahlungBetrag ?? null;
+			this.anzahlungAufloesenNr = data.anzahlungAufloesenNr ?? null;
+			this.depositPreview = Array.isArray(data.depositPreview) ? data.depositPreview : null;
+			this.tseTransactionId = data.tseTransactionId ?? null;
+			this.staged = Boolean(data.staged);
+		} catch {
+			this.clearStorage();
+			return;
+		}
+		try {
+			await this.refresh();
+		} catch {
+			// Totals are recomputed on the next cart change; keep the rows.
+		}
 	}
 
 	async refresh(kundeGibt: number | null = null) {
@@ -164,6 +246,7 @@ export class WarenkorbStore {
 		this.anzahlungBetrag = null;
 		this.anzahlungAufloesenNr = null;
 		this.depositPreview = null;
+		this.clearStorage();
 	}
 
 	private replaceTree(ref: string, rows: Position[]) {
@@ -413,6 +496,7 @@ export class WarenkorbStore {
 		this.anzahlungBetrag = null;
 		this.anzahlungAufloesenNr = null;
 		this.depositPreview = null;
+		this.clearStorage();
 		return verkauf;
 	}
 }
