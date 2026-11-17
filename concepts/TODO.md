@@ -96,8 +96,9 @@ Contract sketch (agree and document in the server OpenAPI docs):
 - [x] Dropdown behaviour: viewport-height limit with scroll, mouse click adds, arrow-key navigation with "Selection blue" highlight, Enter adds the highlighted article; single match + Enter adds directly
 - [x] Add action calls the M1 endpoint according to the mode: Normal → `hinzufuegen`, Leergut → `leergut`, Rückgabe → `hinzufuegen` with negative row
 - [x] After adding: clear the active search field, clear its dropdown, return focus to the barcode field
-- [ ] Empty-result feedback (no dropdown, short hint) and error handling (API unreachable, no Pfand configured for Leergut)
-- [ ] Client-side tests for search debouncing, keyboard navigation and mode-dependent row creation
+- [x] Empty-result feedback (no dropdown, short hint) and error handling (API unreachable, no Pfand configured for Leergut)
+- [x] Client-side test for mode-dependent row creation (Leergut/Rückgabe row kinds, cart store)
+- [ ] Client-side tests for search debouncing and keyboard navigation
 
 ## M3 – Kassieren: cart list, quantities, selection, totals
 

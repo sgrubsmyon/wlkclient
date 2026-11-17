@@ -22,6 +22,7 @@
 	let terms = $state('');
 	let items = $state<Artikel[]>([]);
 	let active = $state(-1);
+	let searched = $state(false);
 	let input: TextInput | undefined = $state();
 	let container: HTMLDivElement | undefined = $state();
 	let timer: ReturnType<typeof setTimeout> | undefined;
@@ -46,6 +47,7 @@
 		if (terms.trim().length < (trigger === 'enter' ? 1 : minChars)) {
 			items = [];
 			active = -1;
+			searched = false;
 			return;
 		}
 		try {
@@ -55,11 +57,13 @@
 			items = [];
 			active = -1;
 		}
+		searched = true;
 	}
 
 	function onInput() {
 		items = [];
 		active = -1;
+		searched = false;
 		if (trigger !== 'input' || terms.trim().length < minChars) return;
 		clearTimeout(timer);
 		timer = setTimeout(() => void searchNow(), 200);
@@ -124,6 +128,9 @@
 			{/each}
 		</ul>
 	{/if}
+	{#if searched && !items.length}
+		<p class="leer">Keine Treffer.</p>
+	{/if}
 </div>
 
 <style>
@@ -166,6 +173,12 @@
 	button.active {
 		background-color: var(--selection);
 		color: #fff;
+	}
+
+	.leer {
+		margin: 0.25rem 0 0;
+		font-size: 0.85rem;
+		opacity: 0.7;
 	}
 
 	button.active :global(em) {
