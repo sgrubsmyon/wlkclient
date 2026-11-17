@@ -1,8 +1,3 @@
-We have the rule that as much business logic as possible shall be put into the backend (API). Because there is a lot of business logic in the adding Artikel to the cart, I think there are missing endpoints covering that. E.g. when an Artikel with Pfand is added to cart, the corresponding Pfandartikel must be added below the Artikel (and its Stückzahl be synchronised with the Artikel itself). Also Rabatt on an Artikel must have its Stückzahl synchronised with the Artikel. Perhaps one could add an API endpoint `POST /warenkorb/hinzufuegen` where one sends JSON data of the article that shall be added and the API responds with the JSON data of what must actaully be added (e.g. when an Artikel with Pfand is POSTed, the API returns a list with two objects, one the Artikel itself, one with the Pfand; Artikel without Pfand would just be mirrored back). Other endpoints could be:
-- `POST /warenkorb/leergut`: receiving the actual Artikel (bottle), returning only the corresponding Pfandartikel.
-- `POST /warenkorb/rueckgabe`: receiving the actual Artikel, returning it with amount -1 (but this is maybe too trivial to require an extra POST to the API).
-- `POST /warenkorb/rabatt`: receiving the Artikel (or multiple Artikels) that are to be discounted, returning correctly formatted Artikel data corresponding to the discount, to be put as rows into the cart.
-
 # `wlkclient` (GUI of `wlkserver`) implementation plan
 
 This document describes what we want to build, i.e. how the product shall turn out in the end.
