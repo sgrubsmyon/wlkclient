@@ -57,6 +57,9 @@
 	];
 	const zahlungsart = $derived(ecZahlung ? 'karte' : 'bar');
 	const kundeGibtWert = $derived(parseDecimal(kundeGibt));
+	const abschlussMoeglich = $derived(
+		store.staged && !store.isEmpty && (ecZahlung || kundeGibtWert != null)
+	);
 
 	// On small screens the rarely used sections start collapsed and move above
 	// the article search, so search and cart stay next to each other.
@@ -679,7 +682,7 @@
 					<button
 						type="button"
 						class="abschluss"
-						disabled={!store.staged || store.isEmpty}
+						disabled={!abschlussMoeglich}
 						onclick={buchungAbschliessen}
 					>
 						<Check size={20} /> Buchung abschließen
