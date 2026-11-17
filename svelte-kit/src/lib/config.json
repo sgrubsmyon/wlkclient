@@ -1,0 +1,41 @@
+{
+	"thumbnailSize": 40,
+	"cartThumbnailSize": 100,
+	"colors": {
+		"alerts": {
+			"success": "#1b5e20",
+			"info": "#0d47a1",
+			"warn": "#b45309",
+			"error": "#b71c1c",
+			"fatal": "#6a1b9a"
+		},
+		"light": {
+			"--primary": "#f4b03f",
+			"--secondary": "#14bac9",
+			"--green": "#80ca2c",
+			"--selection": "#0000ad",
+			"--bg": "#eeeeee",
+			"--text": "#46403c",
+			"--surface": "#ffffff",
+			"--input-bg": "#ffffff",
+			"--border": "#c9c2bc",
+			"--sidebar-bg": "#46403c",
+			"--sidebar-text": "#98918a",
+			"--sidebar-button": "#6b625b"
+		},
+		"dark": {
+			"--primary": "#f4b03f",
+			"--secondary": "#14bac9",
+			"--green": "#80ca2c",
+			"--selection": "#0000ad",
+			"--bg": "#333333",
+			"--text": "#cccccc",
+			"--surface": "#3d3d3d",
+			"--input-bg": "#2a2a2a",
+			"--border": "#5a5a5a",
+			"--sidebar-bg": "#252220",
+			"--sidebar-text": "#98918a",
+			"--sidebar-button": "#4a4540"
+		}
+	}
+}

@@ -24,9 +24,8 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		height: 100vh;
+		min-height: 100vh;
 		font-size: 1.2rem;
-		font: sans-serif;
 	}
 
 	form > div.grid {
@@ -35,19 +34,31 @@
 		gap: 1rem;
 	}
 
+	input {
+		padding: 0.35rem 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: 0.375rem;
+		font: inherit;
+	}
+
 	button {
 		margin-top: 1rem;
 		width: 100%;
 		padding: 0.5rem;
 		border-radius: 0.5rem;
 		border: none;
-		background-color: #4caf50;
-		color: white;
+		background-color: var(--primary);
+		color: #000;
 		cursor: pointer;
 		font-size: 1.2rem;
+		transition: filter 0.15s;
+	}
+
+	button:hover {
+		filter: brightness(0.92);
 	}
 
 	.error {
-		color: #c62828;
+		color: var(--alert-error);
 	}
 </style>

@@ -26,6 +26,9 @@ export const actions = {
 		});
 
 		const redirectTo = url.searchParams.get('redirectTo');
-		redirect(303, redirectTo?.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/');
+		redirect(
+			303,
+			redirectTo?.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/kassieren'
+		);
 	}
 };

@@ -3,7 +3,7 @@
 	import Sidebar from '#lib/Sidebar.svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import DemoLinks from './demo/DemoLinks.svelte';
+	import { themeCss } from '#lib/theme.js';
 	import favicon from '#lib/assets/favicon.svg';
 	import type { LayoutProps } from './$types';
 
@@ -25,6 +25,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<svelte:element this={'style'}>{themeCss()}</svelte:element>
 </svelte:head>
 
 {#if data.user}
@@ -103,31 +104,24 @@
 
 	{@render children()}
 </div>
-<DemoLinks />
 
 <style>
 	:global(body) {
-		--bg: #ffffff;
-		--fg: #1a1a1a;
-		--input-bg: #ffffff;
 		margin: 0;
 		background-color: var(--bg);
-		color: var(--fg);
+		color: var(--text);
+		font-family: system-ui, sans-serif;
 	}
 
-	:global(body[data-theme='dark']) {
-		--bg: #121212;
-		--fg: #e8e8e8;
-		--input-bg: #1e1e1e;
-	}
-
-	:global(input) {
+	:global(input),
+	:global(select),
+	:global(textarea) {
 		background-color: var(--input-bg);
-		color: var(--fg);
+		color: var(--text);
 	}
 
 	.with-sidebar {
-		padding-left: 60px;
+		padding-left: var(--sidebar-width, 60px);
 	}
 
 	.inline {

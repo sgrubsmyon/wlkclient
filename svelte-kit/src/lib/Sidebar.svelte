@@ -1,11 +1,65 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { Activity, LogOut, Moon, Sun } from '@lucide/svelte';
+	import {
+		CardSim,
+		ChevronLeft,
+		ChevronRight,
+		Euro,
+		LogOut,
+		Moon,
+		Sun,
+		User,
+		Users
+	} from '@lucide/svelte';
+	import type { Component } from 'svelte';
 
 	let { user }: { user: NonNullable<App.Locals['user']> } = $props();
 
+	type Entry = { href: string; label: string; icon: Component<{ size?: number }>; admin?: boolean };
+
+	// Order and labels follow the implementation plan; pages are added as they are built.
+	const entries: (Entry | 'theme' | 'logout')[] = [
+		{ href: '/me', label: 'Profil', icon: User },
+		'logout',
+		{ href: '/benutzer', label: 'Benutzer', icon: Users, admin: true },
+		'theme',
+		{ href: '/kassieren', label: 'Kassieren', icon: Euro },
+		{ href: '/tse/status', label: 'TSE', icon: CardSim }
+	];
+
+	const visible = $derived(
+		entries.filter(
+			(entry) => entry === 'theme' || entry === 'logout' || !entry.admin || user.role === 'admin'
+		)
+	);
+
 	const initial = $derived(Array.from(user.username)[0]?.toUpperCase() ?? '?');
 	const color = $derived(avatarColor(user.username));
+	let dark = $state(false);
+	let collapsed = $state(false);
+
+	$effect(() => {
+		try {
+			collapsed = localStorage.getItem('sidebar') === 'collapsed';
+		} catch {
+			// keep the expanded default
+		}
+		dark = document.body.dataset.theme === 'dark';
+	});
+
+	$effect(() => {
+		document.documentElement.style.setProperty('--sidebar-width', collapsed ? '60px' : '210px');
+	});
+
+	function toggleCollapsed() {
+		collapsed = !collapsed;
+		try {
+			localStorage.setItem('sidebar', collapsed ? 'collapsed' : 'expanded');
+		} catch {
+			// ignore unavailable storage
+		}
+	}
 
 	function avatarColor(name: string) {
 		let hue = 0;
@@ -14,13 +68,26 @@
 	}
 
 	function toggleTheme() {
-		const theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
-		document.body.dataset.theme = theme;
-		localStorage.setItem('theme', theme);
+		dark = !dark;
+		document.body.dataset.theme = dark ? 'dark' : 'light';
+		try {
+			localStorage.setItem('theme', dark ? 'dark' : 'light');
+		} catch {
+			// ignore unavailable storage
+		}
 	}
 </script>
 
-<nav>
+<nav class:collapsed>
+	<button
+		type="button"
+		class="toggle"
+		title={collapsed ? 'Ausklappen' : 'Einklappen'}
+		onclick={toggleCollapsed}
+	>
+		{#if collapsed}<ChevronRight size={24} />{:else}<ChevronLeft size={24} />{/if}
+	</button>
+
 	<a
 		class="profile"
 		href={resolve('/me')}
@@ -29,79 +96,109 @@
 	>
 		{initial}
 	</a>
-	<a class="icon-link" href={resolve('/tse/status')} title="TSE-Status">
-		<Activity size={24} />
-	</a>
-	<button type="button" title="Theme wechseln" onclick={toggleTheme}>
-		<span class="sun"><Sun size={24} /></span>
-		<span class="moon"><Moon size={24} /></span>
-	</button>
-	<form method="POST" action="/logout">
-		<button type="submit" title="Abmelden">
-			<LogOut size={24} />
-		</button>
-	</form>
+
+	{#each visible as entry, index (index)}
+		{#if entry === 'theme'}
+			<button type="button" title="Theme wechseln" onclick={toggleTheme}>
+				{#if dark}<Sun size={24} />{:else}<Moon size={24} />{/if}
+				<span class="label">{dark ? 'Hell' : 'Dunkel'}</span>
+			</button>
+		{:else if entry === 'logout'}
+			<form method="POST" action="/logout">
+				<button type="submit" title="Abmelden">
+					<LogOut size={24} />
+					<span class="label">Ausloggen</span>
+				</button>
+			</form>
+		{:else}
+			{@const Icon = entry.icon}
+			<a
+				class="icon-link"
+				class:active={page.url.pathname.startsWith(entry.href)}
+				href={resolve(entry.href as '/kassieren')}
+				title={entry.label}
+			>
+				<Icon size={24} />
+				<span class="label">{entry.label}</span>
+			</a>
+		{/if}
+	{/each}
 </nav>
 
 <style>
 	nav {
 		position: fixed;
 		inset: 0 auto 0 0;
-		width: 60px;
+		z-index: 100;
+		width: var(--sidebar-width, 60px);
 		display: flex;
 		flex-direction: column;
-		align-items: center;
+		align-items: stretch;
 		gap: 5px;
-		padding: 5px 0;
-		background-color: #333;
-		z-index: 100;
+		padding: 5px;
+		overflow: hidden;
+		background-color: var(--sidebar-bg);
+		transition: width 0.15s;
 	}
 
 	button,
 	.profile,
 	.icon-link {
-		width: 50px;
-		height: 50px;
-		display: grid;
-		place-items: center;
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		min-height: 50px;
+		padding: 0 0.8rem;
 		border: none;
 		border-radius: 20px;
-		background-color: #4a4a4a;
-		color: #fff;
+		background-color: var(--sidebar-button);
+		color: var(--text);
+		font: inherit;
+		text-decoration: none;
 		cursor: pointer;
+		white-space: nowrap;
+		transition: background-color 0.15s;
 	}
 
 	button:hover,
 	.profile:hover,
 	.icon-link:hover {
-		background-color: #5a5a5a;
+		filter: brightness(0.92);
 	}
 
-	.icon-link {
-		text-decoration: none;
+	.icon-link.active {
+		background-color: var(--primary);
+		color: #000;
+	}
+
+	.toggle {
+		min-height: 40px;
+		justify-content: center;
+		padding: 0;
+		background-color: transparent;
+		color: var(--sidebar-text);
 	}
 
 	.profile {
+		width: 50px;
+		height: 50px;
+		justify-content: center;
+		padding: 0;
 		border-radius: 50%;
+		color: #fff;
 		font-size: 1.25rem;
 		font-weight: 600;
-		text-decoration: none;
+	}
+
+	nav.collapsed .label {
+		display: none;
 	}
 
 	form {
 		margin: 0;
 	}
 
-	button span {
-		display: contents;
-	}
-
-	/* Sun while dark (switch to light), moon while light (switch to dark). */
-	:global(body[data-theme='dark']) .sun {
-		display: none;
-	}
-
-	:global(body:not([data-theme='dark'])) .moon {
-		display: none;
+	form button {
+		width: 100%;
 	}
 </style>
