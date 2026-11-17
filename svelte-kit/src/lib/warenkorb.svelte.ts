@@ -1,6 +1,16 @@
 import { api } from '#lib/api.js';
 import type { Position, RabattSpec, Summen, Verkauf, Artikel } from '#lib/types.js';
 
+// `crypto.randomUUID` is only available in secure contexts; on a phone opening
+// the dev server via a LAN IP it is missing. Cart refs only need to be unique
+// inside one cart, so a counter suffices.
+let refCounter = 0;
+
+function newRef() {
+	refCounter += 1;
+	return `pos-${Date.now().toString(36)}-${refCounter}`;
+}
+
 /**
  * Client state of the cart. Every price/expansion rule stays in the API: this
  * store only keeps the rows returned by `/warenkorb/*` and re-requests them
@@ -103,7 +113,7 @@ export class WarenkorbStore {
 	/** Add an article (line total `preis` for variable prices). */
 	async add(artikel: Artikel, modus: 'normal' | 'leergut' | 'rueckgabe', preis?: number) {
 		await this.ensureTse();
-		const ref = crypto.randomUUID();
+		const ref = newRef();
 		let rows = await api<Position[]>(
 			modus === 'leergut' ? 'warenkorb/leergut' : 'warenkorb/hinzufuegen',
 			{

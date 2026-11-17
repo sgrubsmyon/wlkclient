@@ -57,7 +57,6 @@ beforeEach(() => {
 			});
 		})
 	);
-	vi.stubGlobal('crypto', { randomUUID: () => 'r1' });
 });
 
 afterEach(() => {
