@@ -2,6 +2,7 @@
 	import {
 		Barcode,
 		CircleHelp,
+		Gift,
 		Hash,
 		ListOrdered,
 		ShoppingCart,
@@ -10,11 +11,13 @@
 	} from '@lucide/svelte';
 	import Alert from '#lib/Alert.svelte';
 	import KassierArtikel from '#lib/KassierArtikel.svelte';
+	import Modal from '#lib/Modal.svelte';
+	import TextInput from '#lib/TextInput.svelte';
 	import PillGroup from '#lib/PillGroup.svelte';
 	import Suchfeld from '#lib/Suchfeld.svelte';
 	import Thumbnail from '#lib/Thumbnail.svelte';
 	import { api } from '#lib/api.js';
-	import { euro } from '#lib/format.js';
+	import { euro, parseDecimal } from '#lib/format.js';
 	import { thumbnailSize } from '#lib/theme.js';
 	import { WarenkorbStore } from '#lib/warenkorb.svelte.js';
 	import type { Artikel } from '#lib/types.js';
@@ -25,6 +28,9 @@
 	let error = $state<string | null>(null);
 	let info = $state<string | null>(null);
 	let barcodeFeld: Suchfeld | undefined = $state();
+	let nameFeld: Suchfeld | undefined = $state();
+	let preisModal = $state<Artikel | null>(null);
+	let preisEingabe = $state('');
 
 	const modi = [
 		{ value: 'normal', label: 'Normal' },
@@ -56,10 +62,39 @@
 	}
 
 	async function addArtikel(artikel: Artikel) {
+		if (artikel.variabler_preis && modus === 'normal') {
+			preisModal = artikel;
+			preisEingabe = '';
+			return;
+		}
 		await run(async () => {
 			await store.add(artikel, modus);
 			barcodeFeld?.focus();
 		});
+	}
+
+	async function artikelByNr(nr: string) {
+		const found = await api<Artikel[]>(`artikel/?artikel_nr=${nr}&limit=1`);
+		if (!found.length) throw new Error(`Artikel ${nr} nicht gefunden`);
+		await addArtikel(found[0]);
+	}
+
+	function closePreisModal() {
+		preisModal = null;
+		preisEingabe = '';
+		barcodeFeld?.focus();
+	}
+
+	async function preisUebernehmen() {
+		if (!preisModal) return;
+		const preis = parseDecimal(preisEingabe);
+		if (preis == null || preis <= 0) {
+			error = 'Bitte einen Preis größer als 0 eingeben.';
+			return;
+		}
+		const artikel = preisModal;
+		closePreisModal();
+		await run(() => store.add(artikel, 'normal', preis));
 	}
 
 	function kurz(text: string, length = 100) {
@@ -127,6 +162,7 @@
 					<Type size={20} />
 					<span class="label">Art.-Name</span>
 					<Suchfeld
+						bind:this={nameFeld}
 						placeholder="Artikelname"
 						trigger="input"
 						minChars={3}
@@ -144,7 +180,20 @@
 
 			<section>
 				<h3><CircleHelp size={20} /> Artikel mit var. Preis</h3>
-				<p class="hint">Wird in Kürze ergänzt.</p>
+				<div class="grid-buttons">
+					<button type="button" onclick={() => nameFeld?.setTerm('Sonstiges', true)}>
+						Sonstiges
+					</button>
+					<button type="button" onclick={() => run(() => artikelByNr('SONSTIGES1'))}>
+						7% MwSt
+					</button>
+					<button type="button" onclick={() => run(() => artikelByNr('GUTSCHEIN'))}>
+						<Gift size={18} /> Gutschein verkaufen
+					</button>
+					<button type="button" onclick={() => run(() => artikelByNr('SONSTIGES2'))}>
+						19% MwSt
+					</button>
+				</div>
 			</section>
 		</div>
 
@@ -167,7 +216,7 @@
 							onselect={() => store.toggleSelected(position.ref)}
 							onquantity={(ref, stueckzahl) => run(() => store.changeQuantity(ref, stueckzahl))}
 							onremove={(ref) => run(() => store.remove(ref))}
-							onprice={() => {}}
+							onprice={(ref, preis) => run(() => store.applyAbweichenderPreis(ref, preis))}
 						/>
 					{/each}
 				</div>
@@ -191,6 +240,23 @@
 		</div>
 	</div>
 </main>
+
+<Modal open={preisModal != null} title="Preis eingeben" onclose={closePreisModal}>
+	<p class="hint">{preisModal?.artikel_name}</p>
+	<div class="preis-zeile">
+		<TextInput
+			bind:value={preisEingabe}
+			placeholder="Preis"
+			inputmode="decimal"
+			onenter={preisUebernehmen}
+		/>
+		<span>€</span>
+	</div>
+	<div class="modal-actions">
+		<button type="button" class="secondary" onclick={closePreisModal}>Abbrechen</button>
+		<button type="button" class="primary" onclick={preisUebernehmen}>Übernehmen</button>
+	</div>
+</Modal>
 
 <style>
 	main {
@@ -351,5 +417,63 @@
 		margin: 0;
 		font-size: 0.85rem;
 		opacity: 0.7;
+	}
+
+	.grid-buttons {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.5rem;
+	}
+
+	.grid-buttons button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.35rem;
+		min-height: 3rem;
+		padding: 0.4rem;
+		border: 1px solid var(--border);
+		border-radius: 0.375rem;
+		background-color: var(--surface);
+		color: var(--text);
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.grid-buttons button:hover {
+		background-color: var(--primary);
+		color: #000;
+	}
+
+	.preis-zeile {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.75rem;
+	}
+
+	.modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.5rem;
+		margin-top: 1rem;
+	}
+
+	.modal-actions button {
+		padding: 0.4rem 1rem;
+		border: none;
+		border-radius: 0.375rem;
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.modal-actions .primary {
+		background-color: var(--green);
+		color: #000;
+	}
+
+	.modal-actions .secondary {
+		background-color: var(--border);
+		color: var(--text);
 	}
 </style>

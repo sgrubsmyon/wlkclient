@@ -116,12 +116,12 @@ Contract sketch (agree and document in the server OpenAPI docs):
 
 ## M4 – Kassieren: articles with variable price
 
-- [ ] Section "Artikel mit var. Preis" with 2×2 button grid: "Sonstiges", "7% MwSt", "19% MwSt", "Gutschein verkaufen"
-- [ ] "Sonstiges" fills the Art.-Name search with "Sonstiges" and triggers the search
-- [ ] "7% MwSt" → `SONSTIGES1`, "19% MwSt" → `SONSTIGES2`, "Gutschein verkaufen" → `GUTSCHEIN`; add to cart via M1
-- [ ] Price modal after adding a variable-price article (greyed background, price input, confirm/cancel; cancel removes the row)
-- [ ] Editable unit price in the cart row for `variabler_preis` articles only; recompute the row total via the API
-- [ ] Validation: price > 0, max two decimals, comma and dot accepted
+- [x] Section "Artikel mit var. Preis" with 2×2 button grid: "Sonstiges", "7% MwSt", "19% MwSt", "Gutschein verkaufen"
+- [x] "Sonstiges" fills the Art.-Name search with "Sonstiges" and triggers the search
+- [x] "7% MwSt" → `SONSTIGES1`, "19% MwSt" → `SONSTIGES2`, "Gutschein verkaufen" → `GUTSCHEIN`; add to cart via M1
+- [x] Price modal after adding a variable-price article (greyed background, price input, confirm/cancel; cancel removes the row)
+- [x] Editable unit price in the cart row for `variabler_preis` articles only; recompute the row total via the API
+- [x] Validation: price > 0, max two decimals, comma and dot accepted
 
 ## M5 – Kassieren: discounts
 
