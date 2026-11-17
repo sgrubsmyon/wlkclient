@@ -128,6 +128,13 @@
 		padding-left: var(--sidebar-width, 60px);
 	}
 
+	@media (max-width: 800px) {
+		.with-sidebar {
+			padding-bottom: 70px;
+			padding-left: 0;
+		}
+	}
+
 	/* Pages with an internal scroll area must not grow beyond the viewport. */
 	@media (min-width: 1101px) {
 		.with-sidebar.fit-height {

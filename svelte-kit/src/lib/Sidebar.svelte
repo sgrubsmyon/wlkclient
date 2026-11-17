@@ -167,6 +167,52 @@
 		padding: 0;
 	}
 
+	/* Small screens: horizontal bar at the bottom, swipe to scroll. */
+	@media (max-width: 800px) {
+		nav,
+		nav.collapsed {
+			inset: auto 0 0 0;
+			box-sizing: border-box;
+			width: 100%;
+			height: 60px;
+			flex-direction: row;
+			align-items: center;
+			padding: 5px;
+			overflow-x: auto;
+			overflow-y: hidden;
+			overscroll-behavior-x: contain;
+			scrollbar-width: thin;
+		}
+
+		nav .toggle {
+			display: none;
+		}
+
+		nav .label {
+			display: none;
+		}
+
+		nav button,
+		nav .profile,
+		nav .icon-link,
+		nav form {
+			flex-shrink: 0;
+		}
+
+		nav button,
+		nav .icon-link {
+			justify-content: center;
+			padding: 0;
+			width: 50px;
+			min-height: 50px;
+			height: 50px;
+		}
+
+		nav form {
+			width: 50px;
+		}
+	}
+
 	button,
 	.profile,
 	.icon-link {
