@@ -62,7 +62,17 @@
 		{ value: 'rueckgabe', label: 'Rückgabe' }
 	];
 
-	const mwstZeilen = $derived(store.summen?.mwst ?? []);
+	const mwstZeilen = $derived.by(() => {
+		const vorhanden = store.summen?.mwst ?? [];
+		const zeilen = [0, 0.07, 0.19].map(
+			(satz) =>
+				vorhanden.find((zeile) => zeile.mwst_satz === satz) ?? { mwst_satz: satz, mwst_betrag: 0 }
+		);
+		for (const zeile of vorhanden) {
+			if (![0, 0.07, 0.19].includes(zeile.mwst_satz)) zeilen.push(zeile);
+		}
+		return zeilen;
+	});
 	const canPercent = $derived(
 		!store.depositActive &&
 			(store.staged
@@ -270,7 +280,7 @@
 			return;
 		}
 		if (betrag > gutscheinSuche.restbetrag) {
-			gutscheinFehler = `Der Gutschein hat nur noch ${euro(gutscheinSuche.restbetrag)} € Guthaben.`;
+			gutscheinFehler = `Der Gutschein hat nur noch ${euro(gutscheinSuche.restbetrag)} Guthaben.`;
 			return;
 		}
 		store.addGutschein(gutscheinSuche.gutschein_nr, betrag, gutscheinSuche.restbetrag);
@@ -293,7 +303,7 @@
 			});
 			info = `Buchung abgeschlossen. Rechnung Nr. ${verkauf.rechnungs_nr}.`;
 			if (verkauf.change != null) {
-				info += ` Rückgeld: ${euro(verkauf.change)} €.`;
+				info += ` Rückgeld: ${euro(verkauf.change)}.`;
 			}
 			if (verkauf.ec_warning) info += ` ${verkauf.ec_warning}`;
 			kundeGibt = '';
@@ -505,7 +515,7 @@
 					<div class="anzahlung-info">
 						<span>
 							{store.anzahlungBetrag != null
-								? `Neue Anzahlung über ${euro(store.anzahlungBetrag)} €`
+								? `Neue Anzahlung über ${euro(store.anzahlungBetrag)}`
 								: `Anzahlung aus Rechnung Nr. ${store.anzahlungAufloesenNr}`}
 						</span>
 						<button type="button" onclick={() => run(() => store.previewAnzahlung(null, null))}>
@@ -532,7 +542,9 @@
 						<KassierArtikel
 							{position}
 							selected={store.isSelected(position.ref)}
-							onselect={() => store.toggleSelected(position.ref)}
+							onselect={() => {
+								if (position.kind === 'artikel') store.toggleSelected(position.ref);
+							}}
 							onquantity={(ref, stueckzahl) => run(() => store.changeQuantity(ref, stueckzahl))}
 							onremove={(ref) => run(() => store.remove(ref))}
 							onprice={(ref, preis) => run(() => store.applyAbweichenderPreis(ref, preis))}
@@ -543,14 +555,14 @@
 
 			<section class="summen">
 				<div class="zahlen">
-					<div><span>Zwischensumme:</span><span>{euro(store.summen?.zwischensumme)} €</span></div>
+					<div><span>Zwischensumme:</span><span>{euro(store.summen?.zwischensumme)}</span></div>
 					{#each mwstZeilen as zeile (zeile.mwst_satz)}
 						<div>
-							<span>inkl. {zeile.mwst_satz * 100}% MwSt:</span>
-							<span>{euro(zeile.mwst_betrag)} €</span>
+							<span>inkl. {Math.round(zeile.mwst_satz * 100)}% MwSt:</span>
+							<span>{euro(zeile.mwst_betrag)}</span>
 						</div>
 					{/each}
-					<div><span>Rabatte:</span><span>{euro(store.summen?.rabatte)} €</span></div>
+					<div><span>Rabatte:</span><span>{euro(store.summen?.rabatte)}</span></div>
 				</div>
 				<div class="zahlung">
 					<button
@@ -568,7 +580,7 @@
 							id="zu-zahlen"
 							class="gross"
 							readonly
-							value={store.staged ? `${euro(store.summen?.zu_zahlen)} €` : ''}
+							value={store.staged ? `${euro(store.summen?.zu_zahlen)}` : ''}
 						/>
 					</div>
 
@@ -609,7 +621,7 @@
 								id="rueckgeld"
 								readonly
 								class="gross"
-								value={store.summen?.rueckgeld != null ? `${euro(store.summen.rueckgeld)} €` : ''}
+								value={store.summen?.rueckgeld != null ? `${euro(store.summen.rueckgeld)}` : ''}
 							/>
 						</div>
 					{/if}
@@ -660,7 +672,7 @@
 					<button type="button" onclick={() => anzahlungAufloesen(eintrag.nr)}>
 						<span>Rechnung Nr. {eintrag.nr}</span>
 						<span>{new Date(eintrag.datum).toLocaleDateString('de-DE')}</span>
-						<span>{euro(eintrag.betrag)} €</span>
+						<span>{euro(eintrag.betrag)}</span>
 					</button>
 				</li>
 			{/each}
@@ -677,9 +689,9 @@
 	{#if gutscheinSuche}
 		<dl class="gutschein-info">
 			<dt>Restbetrag</dt>
-			<dd>{euro(gutscheinSuche.restbetrag)} €</dd>
+			<dd>{euro(gutscheinSuche.restbetrag)}</dd>
 			<dt>Ursprünglicher Betrag</dt>
-			<dd>{euro(gutscheinSuche.restbetrag_anfang)} €</dd>
+			<dd>{euro(gutscheinSuche.restbetrag_anfang)}</dd>
 			<dt>Gekauft am</dt>
 			<dd>{new Date(gutscheinSuche.datum).toLocaleDateString('de-DE')}</dd>
 		</dl>
