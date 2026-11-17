@@ -806,6 +806,55 @@
 		opacity: 0.8;
 	}
 
+	/* Small screens: everything stacked, the page scrolls as a whole and no
+	   section gets its own scrollbar. */
+	@media (max-width: 1100px) {
+		main {
+			flex: none;
+			overflow: visible;
+		}
+
+		.auswahl {
+			flex: none;
+			min-width: 0;
+			overflow: visible;
+		}
+
+		.layout,
+		.warenkorb,
+		.summen {
+			flex-direction: column;
+		}
+
+		.layout {
+			flex: none;
+			gap: 1rem;
+		}
+
+		.warenkorb {
+			flex: none;
+		}
+
+		.warenkorb .liste,
+		.positionen {
+			flex: none;
+			overflow: visible;
+		}
+
+		.summen {
+			min-height: 0;
+			height: auto;
+		}
+
+		.zahlung {
+			height: auto;
+		}
+
+		.abschluss {
+			margin-top: 0.25rem;
+		}
+	}
+
 	/* Long article names are clamped to two lines inside the search results. */
 	.artikel-name {
 		display: -webkit-box;

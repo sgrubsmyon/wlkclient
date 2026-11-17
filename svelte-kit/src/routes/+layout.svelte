@@ -129,10 +129,12 @@
 	}
 
 	/* Pages with an internal scroll area must not grow beyond the viewport. */
-	.with-sidebar.fit-height {
-		height: 100vh;
-		min-height: 0;
-		overflow: hidden;
+	@media (min-width: 1101px) {
+		.with-sidebar.fit-height {
+			height: 100vh;
+			min-height: 0;
+			overflow: hidden;
+		}
 	}
 
 	.inline {
