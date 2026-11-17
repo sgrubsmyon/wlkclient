@@ -9,7 +9,6 @@
 		LogOut,
 		Moon,
 		Sun,
-		User,
 		Users
 	} from '@lucide/svelte';
 	import type { Component } from 'svelte';
@@ -21,7 +20,6 @@
 
 	// Order and labels follow the implementation plan; pages are added as they are built.
 	const entries: (Entry | 'theme' | 'logout')[] = [
-		{ href: '/me', label: 'Profil', icon: User },
 		'logout',
 		{ href: '/benutzer', label: 'Benutzer', icon: Users, admin: true },
 		'theme',
@@ -104,13 +102,9 @@
 		{#if collapsed}<ChevronRight size={24} />{:else}<ChevronLeft size={24} />{/if}
 	</button>
 
-	<a
-		class="profile"
-		href={resolve('/me')}
-		title={`Eingeloggt als ${user.username}`}
-		style:background-color={color}
-	>
-		{initial}
+	<a class="profile" href={resolve('/me')} title={`Eingeloggt als ${user.username}`}>
+		<span class="avatar" style:background-color={color}>{initial}</span>
+		<span class="label username">{user.username}</span>
 	</a>
 
 	{#each visible as entry, index (index)}
@@ -147,6 +141,7 @@
 		inset: 0 auto 0 0;
 		z-index: 100;
 		width: max-content;
+		max-width: 220px;
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
@@ -162,9 +157,14 @@
 	}
 
 	nav.collapsed button,
-	nav.collapsed .icon-link {
+	nav.collapsed .icon-link,
+	nav.collapsed .profile {
 		justify-content: center;
 		padding: 0;
+	}
+
+	nav.collapsed .profile {
+		width: 50px;
 	}
 
 	/* Small screens: horizontal bar at the bottom, swipe to scroll. */
@@ -197,6 +197,12 @@
 		nav .icon-link,
 		nav form {
 			flex-shrink: 0;
+		}
+
+		nav .profile {
+			width: 50px;
+			justify-content: center;
+			padding: 0;
 		}
 
 		nav button,
@@ -252,14 +258,27 @@
 	}
 
 	.profile {
-		width: 50px;
-		height: 50px;
-		justify-content: center;
-		padding: 0;
+		min-height: 50px;
+		padding: 0 0.8rem;
+	}
+
+	.avatar {
+		display: grid;
+		flex-shrink: 0;
+		place-items: center;
+		width: 38px;
+		height: 38px;
 		border-radius: 50%;
 		color: #fff;
-		font-size: 1.25rem;
+		font-size: 1.15rem;
 		font-weight: 600;
+	}
+
+	.username {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	nav.collapsed .label {
