@@ -13,11 +13,16 @@ async function proxy(event: RequestEvent) {
 	if (accept) headers.set('accept', accept);
 
 	const hasBody = event.request.method !== 'GET' && event.request.method !== 'HEAD';
-	const response = await fetch(`${API_URL}/${event.params.path}${url.search}`, {
-		method: event.request.method,
-		headers,
-		body: hasBody ? await event.request.arrayBuffer() : undefined
-	});
+	let response: Response;
+	try {
+		response = await fetch(`${API_URL}/${event.params.path}${url.search}`, {
+			method: event.request.method,
+			headers,
+			body: hasBody ? await event.request.arrayBuffer() : undefined
+		});
+	} catch {
+		error(502, 'Der Server ist nicht erreichbar.');
+	}
 
 	return new Response(response.body, {
 		status: response.status,

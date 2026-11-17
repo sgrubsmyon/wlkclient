@@ -8,11 +8,19 @@ export const actions = {
 		const username = String(form.get('username') ?? '');
 		const password = String(form.get('password') ?? '');
 
-		const response = await fetch(`${API_URL}/auth/login`, {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ username, password })
-		});
+		let response: Response;
+		try {
+			response = await fetch(`${API_URL}/auth/login`, {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ username, password })
+			});
+		} catch {
+			return fail(503, {
+				username,
+				error: 'Der Server ist nicht erreichbar. Läuft die API?'
+			});
+		}
 		if (!response.ok) {
 			return fail(response.status, { username, error: 'Anmeldung fehlgeschlagen.' });
 		}
