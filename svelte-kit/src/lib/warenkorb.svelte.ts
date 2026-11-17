@@ -128,6 +128,7 @@ export class WarenkorbStore {
 				}));
 		}
 		this.positionen = [...this.positionen, ...rows];
+		if (this.rechnungRabatt) await this.applyRechnungRabatt(this.rechnungRabatt, false);
 		await this.refresh();
 	}
 
@@ -138,6 +139,7 @@ export class WarenkorbStore {
 		this.positionen = this.positionen.filter((row) => row.ref !== ref && row.parent_ref !== ref);
 		this.selected = this.selected.filter((item) => item !== ref);
 		if (source.kind === 'gutschein') this.gutschein = null;
+		if (this.rechnungRabatt) await this.applyRechnungRabatt(this.rechnungRabatt, false);
 		await this.refresh();
 	}
 
@@ -242,7 +244,10 @@ export class WarenkorbStore {
 			const rows = await this.discountRows(target, spec);
 			this.replaceTree(target.ref, rows);
 		}
-		if (this.rechnungRabatt && !this.staged) this.rechnungRabatt = null;
+		if (this.rechnungRabatt) {
+			if (this.staged) await this.applyRechnungRabatt(this.rechnungRabatt, false);
+			else this.rechnungRabatt = null;
+		}
 		await this.refresh();
 	}
 
@@ -253,6 +258,7 @@ export class WarenkorbStore {
 		const rows = await this.reloadSource(source, source.stueckzahl, preis);
 		rows[0] = { ...rows[0], preis_override: true };
 		this.replaceTree(ref, rows);
+		if (this.rechnungRabatt) await this.applyRechnungRabatt(this.rechnungRabatt, false);
 		await this.refresh();
 	}
 

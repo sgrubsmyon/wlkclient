@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Minus, Plus, Trash2 } from '@lucide/svelte';
 	import Thumbnail from '#lib/Thumbnail.svelte';
-	import TextInput from '#lib/TextInput.svelte';
 	import { euro, parseDecimal, vatLabel, vatSeverity } from '#lib/format.js';
 	import { cartThumbnailSize } from '#lib/theme.js';
 	import type { Position } from '#lib/types.js';
@@ -52,22 +51,21 @@
 			<span class="badge {vatSeverity(position.mwst_satz)}">{vatLabel(position.mwst_satz)}</span>
 			<div class="price">
 				{#if editablePrice}
-					<span
+					<input
 						class="price-input"
+						value={String(position.einzelpreis).replace('.', ',')}
+						inputmode="decimal"
 						onclick={(event) => event.stopPropagation()}
-						onkeydown={(event) => event.stopPropagation()}
-						role="presentation"
-					>
-						<TextInput
-							value={String(position.einzelpreis).replace('.', ',')}
-							inputmode="decimal"
-							onchange={(value) => {
-								const parsed = parseDecimal(value);
-								if (parsed != null && parsed > 0)
-									onprice(position.ref, parsed * position.stueckzahl);
-							}}
-						/>
-					</span>
+						onkeydown={(event) => {
+							event.stopPropagation();
+							if (event.key === 'Enter') event.currentTarget.blur();
+						}}
+						onchange={(event) => {
+							const parsed = parseDecimal(event.currentTarget.value);
+							if (parsed != null && parsed > 0) onprice(position.ref, parsed * position.stueckzahl);
+							else event.currentTarget.value = String(position.einzelpreis).replace('.', ',');
+						}}
+					/>
 				{:else}
 					<span>{euro(position.einzelpreis)}</span>
 				{/if}
@@ -206,6 +204,14 @@
 
 	.price-input {
 		width: 6.5rem;
+		padding: 0.15rem 0.35rem;
+		border: 1px solid var(--border);
+		border-radius: 0.25rem;
+		background-color: var(--input-bg);
+		color: var(--text);
+		font: inherit;
+		font-size: 0.85rem;
+		text-align: right;
 	}
 
 	.bottom {
