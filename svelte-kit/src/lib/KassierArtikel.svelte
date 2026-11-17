@@ -315,6 +315,65 @@
 		color: var(--alert-info);
 	}
 
+	/* Phones: name, supplier/quantity/remove, VAT + unit price, total below. */
+	@media (max-width: 800px) {
+		.main {
+			display: grid;
+			grid-template-columns: 1fr auto auto;
+			grid-template-areas:
+				'name name name'
+				'lieferant qty remove'
+				'badge price price'
+				'gesamt gesamt gesamt';
+			gap: 0.4rem 0.5rem;
+		}
+
+		.top,
+		.bottom {
+			display: contents;
+		}
+
+		.name {
+			grid-area: name;
+		}
+
+		.lieferant,
+		.kind {
+			grid-area: lieferant;
+			align-self: center;
+		}
+
+		.qty {
+			grid-area: qty;
+		}
+
+		.remove {
+			grid-area: remove;
+			justify-self: end;
+		}
+
+		.badge {
+			grid-area: badge;
+			justify-self: start;
+			align-self: center;
+		}
+
+		.price {
+			grid-area: price;
+			justify-self: end;
+		}
+
+		.gesamt {
+			grid-area: gesamt;
+			justify-self: end;
+			margin-left: 0;
+		}
+
+		.nr {
+			display: none;
+		}
+	}
+
 	/* The dark theme needs lighter kind colours to stay readable. */
 	:global(body[data-theme='dark']) .pfand {
 		color: color-mix(in srgb, var(--selection) 40%, white);
