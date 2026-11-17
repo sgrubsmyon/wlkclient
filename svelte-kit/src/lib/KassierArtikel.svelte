@@ -310,6 +310,31 @@
 		color: var(--alert-info);
 	}
 
+	/* The dark theme needs lighter kind colours to stay readable. */
+	:global(body[data-theme='dark']) .pfand {
+		color: color-mix(in srgb, var(--selection) 40%, white);
+	}
+
+	:global(body[data-theme='dark']) .rabatt,
+	:global(body[data-theme='dark']) .rechnung_rabatt,
+	:global(body[data-theme='dark']) .preisanpassung {
+		color: color-mix(in srgb, var(--alert-error) 40%, white);
+	}
+
+	:global(body[data-theme='dark']) .leergut,
+	:global(body[data-theme='dark']) .rueckgabe {
+		color: color-mix(in srgb, var(--alert-success) 40%, white);
+	}
+
+	:global(body[data-theme='dark']) .gutschein {
+		color: color-mix(in srgb, var(--alert-fatal) 40%, white);
+	}
+
+	:global(body[data-theme='dark']) .anzahlung,
+	:global(body[data-theme='dark']) .anzahlungsaufloesung {
+		color: color-mix(in srgb, var(--alert-info) 40%, white);
+	}
+
 	.row.selected .pfand,
 	.row.selected .rabatt,
 	.row.selected .rechnung_rabatt,
