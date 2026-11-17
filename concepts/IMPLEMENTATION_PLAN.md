@@ -340,6 +340,14 @@ Missing:
 
 ## General goals and improvements
 
+### Warenkorb-API
+
+The cart itself is client state, but all price, Pfand, discount and VAT rules live in the API
+(`POST /warenkorb/hinzufuegen|leergut|rabatt|summen`). The client posts the current context and
+renders the returned rows. Quantity changes re-call `hinzufuegen` for the edited row and replace its
+children, so Pfand and Rabatt rows always follow the article. "Rückgabe" does not need an endpoint:
+the client negates the returned article rows itself.
+
 ### Sidebar
 
 The sidebar shall have a collapsed and an expanded state, togglable via the top-most button (above button for "Profil"). The toggle button has a "right arrow" icon when collapsed and a "left arrow" icon when expanded. In collapsed state, the sidebar shows only the square buttons and is narrow (only a little wider than the buttons themselves). When expanded, the buttons are rectangular and hold the page title right to the icon, i.e. "Profil", "Ausloggen", "Kassieren" etc. The theme toggle button shows text "Dunkel" (with moon icon) when current theme is light and "Hell" (sun icon) when current theme is dark.

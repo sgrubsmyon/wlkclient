@@ -70,19 +70,19 @@ Contract sketch (agree and document in the server OpenAPI docs):
 - A cart row (`WarenkorbPosition`) carries: `ref` (client-generated or returned, used to attach children), `parent_ref` (for Pfand/Rabatt rows), `kind` (`artikel`, `pfand`, `rabatt`, `preisanpassung`, `leergut`, `rueckgabe`, `rechnung_rabatt`, `gutschein`, `anzahlung`), `artikel_id`, `artikel_name`, `kurzname`, `lieferant_kurzname`, `artikel_nr`, `stueckzahl`, `einzelpreis`, `ges_preis`, `mwst_satz`, `variabler_preis`, `rabatt_id` (nullable)
 - Price/tax/rounding rules are shared with `build_sale_details` (single source of truth, no duplicated logic)
 
-- [ ] Design and document the `WarenkorbPosition` schema and the endpoint request bodies (Python schemas + docstrings)
-- [ ] Refactor the row expansion in `business/sale_workflow.py` into a reusable function so cart preview and sale creation cannot diverge
-- [ ] `POST /warenkorb/hinzufuegen`: body `{artikel_id, stueckzahl?, preis?}`; returns the article row plus its Pfand child row (article without Pfand is returned alone); variable-price articles keep the given `preis`
-- [ ] `POST /warenkorb/leergut`: body `{artikel_id, stueckzahl?}`; returns only the corresponding Pfand row with negative price (returning empty bottles)
-- [ ] `POST /warenkorb/rabatt`: body `{positionen: [...], rabatt: {art: "relativ"|"absolut", wert: ...}}`; returns one negative Rabatt child row per article row with the same `stueckzahl` and the article's VAT rate; rounding half-up per row
-- [ ] `POST /warenkorb/summen`: body = list of cart rows; returns `zwischensumme`, VAT sums for 0/7/19 % (`inkl. … MwSt`), `rabatte` total and `zu_zahlen` (incl. receipt-level discount and voucher redemption, excl. deposit handling)
-- [ ] Receipt-level discount (`rechnung_rabatt`) rows per VAT rate, excluding articles that already carry an individual Rabatt; expose a preview endpoint call for the "Zur Zahlung" stage
-- [ ] Record decision: `POST /warenkorb/rueckgabe` is not implemented; the client negates the row itself (suggested by the plan, trivially derivable). Document in `IMPLEMENTATION_PLAN.md`
-- [ ] Confirm how quantity changes are re-synchronised: re-call `hinzufuegen` with the new `stueckzahl` for the parent row and replace its children in the client; no stateful cart on the server
-- [ ] Verify `GET /artikel` supports the needed searches: `artikel_name`/`kurzname` contains (≥3 chars), `artikel_nr` contains, barcode wildcard (currently exact `barcode` match; decide `q` vs. a new contains parameter) and `limit`
-- [ ] Verify `GET /artikel/{id}/bild` is reachable from the client (proxy through SvelteKit if cookies cannot be attached to `<img>` requests)
-- [ ] API tests for all new endpoints: full Pfand expansion, Leergut sign, discount sync, VAT split, rounding, variable price
-- [ ] Update `wlkserver/concepts/TODO.md` and `wlkserver/concepts/IMPLEMENTATION_PLAN.md` (required by the server AGENTS.md)
+- [x] Design and document the `WarenkorbPosition` schema and the endpoint request bodies (Python schemas + docstrings)
+- [x] Refactor the row expansion in `business/sale_workflow.py` into a reusable function so cart preview and sale creation cannot diverge
+- [x] `POST /warenkorb/hinzufuegen`: body `{artikel_id, stueckzahl?, preis?}`; returns the article row plus its Pfand child row (article without Pfand is returned alone); variable-price articles keep the given `preis`
+- [x] `POST /warenkorb/leergut`: body `{artikel_id, stueckzahl?}`; returns only the corresponding Pfand row with negative price (returning empty bottles)
+- [x] `POST /warenkorb/rabatt`: body `{positionen: [...], rabatt: {art: "relativ"|"absolut", wert: ...}}`; returns one negative Rabatt child row per article row with the same `stueckzahl` and the article's VAT rate; rounding half-up per row
+- [x] `POST /warenkorb/summen`: body = list of cart rows; returns `zwischensumme`, VAT sums for 0/7/19 % (`inkl. … MwSt`), `rabatte` total and `zu_zahlen` (incl. receipt-level discount and voucher redemption, excl. deposit handling)
+- [x] Receipt-level discount (`rechnung_rabatt`) rows per VAT rate, excluding articles that already carry an individual Rabatt; expose a preview endpoint call for the "Zur Zahlung" stage
+- [x] Record decision: `POST /warenkorb/rueckgabe` is not implemented; the client negates the row itself (suggested by the plan, trivially derivable). Document in `IMPLEMENTATION_PLAN.md`
+- [x] Confirm how quantity changes are re-synchronised: re-call `hinzufuegen` with the new `stueckzahl` for the parent row and replace its children in the client; no stateful cart on the server
+- [x] Verify `GET /artikel` supports the needed searches: `artikel_name`/`kurzname` contains (≥3 chars), `artikel_nr` contains, barcode wildcard via the existing `q` contains search (matches name/nr/barcode) and `limit`
+- [x] Verify `GET /artikel/{id}/bild` is reachable from the client (proxy through SvelteKit if cookies cannot be attached to `<img>` requests)
+- [x] API tests for all new endpoints: full Pfand expansion, Leergut sign, discount sync, VAT split, rounding, variable price
+- [x] Update `wlkserver/concepts/TODO.md` and `wlkserver/concepts/IMPLEMENTATION_PLAN.md` (required by the server AGENTS.md)
 
 ## M2 – Kassieren: article search and add modes
 
