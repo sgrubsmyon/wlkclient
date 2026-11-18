@@ -79,3 +79,49 @@ export type Verkauf = {
 	change: number | null;
 	ec_warning: string | null;
 };
+
+export type VerkaufUebersicht = {
+	rechnungs_nr: number;
+	verkaufsdatum: string;
+	summe: number;
+	mwst_7: number;
+	mwst_19: number;
+	ec_zahlung: boolean;
+	kunde_gibt: number | null;
+	storno_von: number | null;
+	user_id: number | null;
+	username: string | null;
+};
+
+export type VerkaufDetail = {
+	vd_id: number;
+	position: number | null;
+	stueckzahl: number;
+	ges_preis: number;
+	mwst_satz: number;
+	rechnungs_nr: number;
+	artikel_id: number | null;
+	rabatt_id: number | null;
+	artikel_name: string | null;
+	artikel_kurzname: string | null;
+	artikel_nr: string | null;
+	lieferant_kurzname: string | null;
+	artikel_vk_preis: number | null;
+	artikel_variabler_preis: boolean;
+};
+
+export type VerkaufMwst = {
+	mwst_satz: number;
+	mwst_netto: number;
+	mwst_betrag: number;
+};
+
+export type VerkaufDetails = {
+	rechnungs_nr: number;
+	verkaufsdatum: string;
+	ec_zahlung: boolean;
+	kunde_gibt: number | null;
+	storno_von: number | null;
+	verkauf_details: VerkaufDetail[];
+	verkauf_mwst: VerkaufMwst[];
+};

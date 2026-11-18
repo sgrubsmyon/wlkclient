@@ -10,7 +10,7 @@ This file tracks the implementation of the GUI described in `IMPLEMENTATION_PLAN
 
 ## Current status
 
-Milestones **M0–M8 are implemented** (see the commit history). M9–M16 are still open; those pages are
+Milestones **M0–M9 are implemented** (see the commit history). M10–M16 are still open; those pages are
 listed in the plan with "Details to be specified" and need the page design in the plan first.
 
 ## Milestone overview
@@ -176,14 +176,14 @@ Client:
 - [x] `/benutzer/neu`: form (username, full name, role default `mitarbeiter`, theme default `light`), validation, redirect back to the list
 - [x] Route/page guards for admin routes (server-side redirect)
 
-## M9 – Rechnungen
+## M9 – Verkäufe
 
-- [ ] Specify the page in `IMPLEMENTATION_PLAN.md`
-- [ ] `/rechnungen/heute`: sales since the last completed `abrechnung_tag` (`GET /verkauf/`), columns per plan
-- [ ] `/rechnungen/alt`: all other sales, read-only
-- [ ] Sale details view (`GET /verkauf/{nr}/details`, `GET /verkauf/{nr}/mwst`)
-- [ ] Storno action for today's sales only (`POST /verkauf/{nr}/storno`) with confirmation and error handling
-- [ ] Route index redirect to `/rechnungen/heute`
+- [x] Specify the page in `IMPLEMENTATION_PLAN.md` (done by the user)
+- [x] `/verkaeufe/heute`: sales since the last completed `abrechnung_tag` (`GET /verkauf/uebersicht?nur_heute=true`), DataTables with the planned columns
+- [x] `/verkaeufe/alt`: all other sales, read-only
+- [x] Sale details view (`GET /verkauf/{nr}`) reusing the cart row component plus the totals block
+- [x] Storno action for today's sales only (`POST /verkauf/{nr}/storno`) with confirmation modal and error handling
+- [x] Route index redirect to `/verkaeufe/heute`, tabs and sidebar entry
 
 ## M10 – Abrechnungen
 

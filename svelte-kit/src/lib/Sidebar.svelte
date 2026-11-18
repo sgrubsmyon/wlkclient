@@ -9,6 +9,7 @@
 		LogOut,
 		Moon,
 		Sun,
+		TableOfContents,
 		Users
 	} from '@lucide/svelte';
 	import type { Component } from 'svelte';
@@ -24,6 +25,7 @@
 		{ href: '/benutzer', label: 'Benutzer', icon: Users, admin: true },
 		'theme',
 		{ href: '/kassieren', label: 'Kassieren', icon: Euro },
+		{ href: '/verkaeufe', label: 'Verkäufe', icon: TableOfContents },
 		{ href: '/tse/status', label: 'TSE', icon: CardSim }
 	];
 

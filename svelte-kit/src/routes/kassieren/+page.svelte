@@ -619,7 +619,9 @@
 
 			<section class="summen">
 				<div class="zahlen">
-					<div><span>Zwischensumme:</span><span>{euro(store.summen?.zwischensumme)}</span></div>
+					<div class="bold">
+						<span>Zwischensumme:</span><span>{euro(store.summen?.zwischensumme)}</span>
+					</div>
 					{#each mwstZeilen as zeile (zeile.mwst_satz)}
 						<div>
 							<span>inkl. {Math.round(zeile.mwst_satz * 100)}% MwSt:</span>
@@ -1074,6 +1076,10 @@
 		display: flex;
 		justify-content: space-between;
 		gap: 1rem;
+	}
+
+	.bold {
+		font-weight: bold;
 	}
 
 	.zahlung {

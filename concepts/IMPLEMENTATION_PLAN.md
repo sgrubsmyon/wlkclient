@@ -249,17 +249,40 @@ Changing the theme updates `pref_theme` in the user table and a `theme` cookie, 
 
 - Route: /bestellen
 - Sidebar lucide icon: 'clipboard-list'
-- The page for creating and editing orders (purchases of fresh supplies for the store).
-- Details to be specified
+- Die Seite zum Erstellen und Bearbeiten von Bestellungen (Einkauf von Ware für den Laden).
+- Details müssen noch spezifiziert werden
 
-### Rechnungen
+### Verkäufe
 
-- Route: /rechnungen
+- Route: /verkaeufe
 - Sidebar lucide icon: 'table-of-contents'
-- The page for looking at finished sales (DB table `verkauf`)
-- Split into "Heutige Rechnungen" (route /rechnungen/heute) (all sales since the last `abrechnung_tag` that have not gone into an Abrechnung yet) and "Alte Rechnungen" (route /rechnungen/alt) (all other)
-- Sales on "Heutige Rechnungen" can be canceled ("Storno"), others not
-- Details to be specified
+- Die Seite zum Anzeigen abgeschlossener Verkäufe (DB-Tabelle `verkauf`)
+- Aufgeteilt in "Heutige Verkäufe" (Route /verkaeufe/heute, alle Verkäufe seit der letzten `abrechnung_tag`, die noch nicht in eine Abrechnung eingeflossen sind) und "Alte Verkäufe" (Route /verkaeufe/alt, für alle anderen älteren Verkäufe)
+- Verkäufe in "Heutige Verkäufe" können storniert werden, die anderen nicht
+- Allgemeine Struktur:
+	- h1 mit Titel "Verkäufe"
+	- 2 Tabs: "Heutige Verkäufe" und "Alte Verkäufe"
+		- Tab "Heutige Verkäufe": div (flex row) mit Inhalt:
+			- Tabelle mit Übersicht über die Verkäufe
+				- Bitte JS-Bibliothek zur Formatierung verwenden, z.B. https://datatables.net/ (npm-Paket 'datatables.net-dt')
+				- Spalten:
+					- `rechnungs_nr` (Überschrift "Nr.")
+					- `verkaufsdatum` (Überschrift "Datum")
+					- Summe über `verkauf_details.ges_preis` für diese `rechnungs_nr` in Fettdruck (Überschrift "Summe"), formatiert mit `euro()`
+					- Summe über `verkauf_details.mwst_betrag` für diese `rechnungs_nr` und `mwst_satz = 0.07` (Überschrift "7% MwSt"), formatiert mit `euro()`
+					- Summe über `verkauf_details.mwst_betrag` für diese `rechnungs_nr` und `mwst_satz = 0.19` (Überschrift "19% MwSt"), formatiert mit `euro()`
+					- "Bar" if `ec_zahlung` is False else "Karte" (Überschrift "Zahlungsart")
+					- `kunde_gibt` (Überschrift "Kunde gibt")
+					- `storno_von` (Überschrift "Storniert Nr.")
+					- `username` zu der verbuchten `user_id` (Überschrift "User")
+					- Button mit svelte icon "trash" zum Stornieren des Verkaufs (Tooltip/title: "Stornieren", Überschrift der Spalte: "Storno")
+						- Klick auf Button öffnet Modal mit Frage "Verkauf Nr. `rechnungs_nr` über `<Eintrag aus Spalte "Summe">` wirklich stornieren?", Ja/Nein
+						- Bei Klick auf Ja wird rechnung storniert, d.h. neue Zeile mit `storno_von = rechnungs_nr` wird in `verkauf` eingefügt
+				- Angeklickte Tabellenzeile wird blau markiert (Hintergrundfarbe "Selection blue", Schriftfarbe hell/weiß)
+				- Details des angeklickten Verkaufs werden rechts angezeigt im Detail-div
+			- div mit Details zum angeklickten Verkauf
+				- oben dieselbe Ansicht wie im Warenkorb (`section.liste`) von "Kassieren", aber: ohne Auswahl der Stückzahl (`+`, Stückzahl-Textfeld, `-`) und ohne "Löschen"-Button
+				- darunter dieselbe Ansicht wie `div.zahlen`, aber nur so hoch wie benötigt
 
 ### Abrechnungen
 
