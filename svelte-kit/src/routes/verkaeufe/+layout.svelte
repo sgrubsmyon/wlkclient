@@ -22,12 +22,24 @@
 			Alte Verkäufe
 		</a>
 	</nav>
-	{@render children()}
+	<div class="content">
+		{@render children()}
+	</div>
 </main>
 
 <style>
 	main {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		box-sizing: border-box;
+		min-height: 0;
 		padding: 1rem;
+	}
+
+	.content {
+		flex: 1;
+		min-height: 0;
 	}
 
 	h1 {

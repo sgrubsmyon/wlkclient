@@ -32,7 +32,11 @@
 	<Sidebar user={data.user} />
 {/if}
 
-<div class:with-sidebar={data.user} class:fit-height={page.url.pathname === '/kassieren'}>
+<div
+	class:with-sidebar={data.user}
+	class:fit-height={page.url.pathname === '/kassieren' ||
+		page.url.pathname.startsWith('/verkaeufe')}
+>
 	{#if data.user && data.tse}
 		{#if !data.tse.accessible}
 			<Alert severity="warn">

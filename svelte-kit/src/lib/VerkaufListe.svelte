@@ -288,6 +288,31 @@
 		align-items: flex-start;
 	}
 
+	/* Large screens: fill the page, each pane scrolls on its own. */
+	@media (min-width: 1101px) {
+		.inhalt {
+			height: 100%;
+			gap: 0;
+			align-items: stretch;
+		}
+
+		.tabelle {
+			overflow: auto;
+			min-height: 0;
+		}
+
+		.details {
+			overflow-y: auto;
+			min-height: 0;
+			padding-left: 1rem;
+			border-left: 1px solid var(--border);
+		}
+
+		.details > * {
+			flex-shrink: 0;
+		}
+	}
+
 	.tabelle {
 		flex: 1 1 66%;
 		min-width: 0;
