@@ -415,7 +415,8 @@
 			</div>
 			<div class="zahlen">
 				<div class="summe">
-					<span>Summe:</span><span><strong>{euro(summe)}</strong></span>
+					<strong>Summe:</strong>
+					<strong>{euro(summe)}</strong>
 				</div>
 				{#each mwstZeilen as zeile (zeile.mwst_satz)}
 					<div class="mwst-zeile {vatSeverity(Number(zeile.mwst_satz))}">

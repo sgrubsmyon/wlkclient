@@ -637,8 +637,9 @@
 
 			<section class="summen">
 				<div class="zahlen">
-					<div class="bold">
-						<span>Zwischensumme:</span><span>{euro(store.summen?.zwischensumme)}</span>
+					<div class="summe">
+						<strong>Zwischensumme:</strong>
+						<strong>{euro(store.summen?.zwischensumme)}</strong>
 					</div>
 					{#each mwstZeilen as zeile (zeile.mwst_satz)}
 						<div class="mwst-zeile {vatSeverity(zeile.mwst_satz)}">
@@ -1131,10 +1132,6 @@
 
 	.zahlen .rabatte {
 		font-style: italic;
-	}
-
-	.bold {
-		font-weight: bold;
 	}
 
 	.zahlung {
