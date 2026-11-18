@@ -269,6 +269,13 @@
 		}
 	}
 
+	function passendZahlen() {
+		const total = store.summen?.zu_zahlen;
+		if (total == null) return;
+		kundeGibt = total.toFixed(2).replace('.', ',');
+		void refreshTotals();
+	}
+
 	function setZahlungsart(art: string) {
 		ecZahlung = art === 'karte';
 		if (ecZahlung) kundeGibt = '';
@@ -676,14 +683,25 @@
 					{#if !ecZahlung}
 						<div class="zeile cash">
 							<label for="kunde-gibt">KUNDE GIBT:</label>
-							<TextInput
-								bind:value={kundeGibt}
-								placeholder="Betrag"
-								inputmode="decimal"
-								disabled={!store.staged}
-								onchange={() => void refreshTotals()}
-								onenter={() => void refreshTotals()}
-							/>
+							<div class="kunde-gibt">
+								<TextInput
+									id="kunde-gibt"
+									bind:value={kundeGibt}
+									placeholder="Betrag"
+									inputmode="decimal"
+									disabled={!store.staged}
+									onchange={() => void refreshTotals()}
+									onenter={() => void refreshTotals()}
+								/>
+								<button
+									type="button"
+									class="passt"
+									disabled={!store.staged || store.summen?.zu_zahlen == null}
+									onclick={passendZahlen}
+								>
+									Passt
+								</button>
+							</div>
 							<label for="rueckgeld">RÜCKGELD:</label>
 							<input
 								id="rueckgeld"
@@ -1296,6 +1314,33 @@
 		font-size: 0.9rem;
 		font-weight: 600;
 		white-space: nowrap;
+	}
+
+	.kunde-gibt {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		min-width: 0;
+	}
+
+	.passt {
+		padding: 0.35rem 0.7rem;
+		border: none;
+		border-radius: 0.375rem;
+		background-color: var(--primary);
+		color: #000;
+		font: inherit;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+
+	.passt:hover:not(:disabled) {
+		filter: brightness(0.92);
+	}
+
+	.passt:disabled {
+		opacity: 0.5;
+		cursor: default;
 	}
 
 	.zeile input.gross {

@@ -2,6 +2,7 @@
 	import { X } from '@lucide/svelte';
 
 	let {
+		id,
 		value = $bindable(''),
 		placeholder = '',
 		disabled = false,
@@ -9,6 +10,7 @@
 		onenter,
 		onchange
 	}: {
+		id?: string;
 		value?: string;
 		placeholder?: string;
 		disabled?: boolean;
@@ -34,6 +36,7 @@
 <div class="text-input">
 	<input
 		bind:this={input}
+		{id}
 		bind:value
 		{placeholder}
 		{disabled}
