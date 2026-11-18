@@ -32,6 +32,7 @@
 	);
 	const editablePrice = $derived(position.variabler_preis && !indented && !readonly);
 	const total = $derived(euro(position.ges_preis));
+	const name = $derived(position.aktionsname || position.artikel_name);
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -52,7 +53,7 @@
 
 	<div class="main">
 		<div class="top">
-			<span class="name" title={position.artikel_name}>{position.artikel_name}</span>
+			<span class="name" title={name}>{name}</span>
 			<span class="badge {vatSeverity(position.mwst_satz)}">{vatLabel(position.mwst_satz)}</span>
 			<div class="price">
 				{#if editablePrice}

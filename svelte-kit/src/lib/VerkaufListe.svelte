@@ -80,11 +80,16 @@
 
 	function toPosition(row: VerkaufDetail): Position {
 		const stueckzahl = row.stueckzahl || 1;
-		const kind = row.ist_pfand ? 'pfand' : (spezialKinds[row.artikel_nr ?? ''] ?? 'artikel');
+		const kind =
+			row.rabatt_id != null
+				? 'rabatt'
+				: row.ist_pfand
+					? 'pfand'
+					: (spezialKinds[row.artikel_nr ?? ''] ?? 'artikel');
 		const name =
 			kind === 'gutschein' && row.gutschein_nr != null
 				? `Einlösung Gutschein Nr. ${row.gutschein_nr}`
-				: (row.artikel_name ?? '');
+				: (row.aktionsname ?? row.artikel_name ?? '');
 		return {
 			ref: `vd-${row.vd_id}`,
 			parent_ref: null,
@@ -100,6 +105,7 @@
 			mwst_satz: Number(row.mwst_satz),
 			variabler_preis: Boolean(row.artikel_variabler_preis),
 			rabatt_id: row.rabatt_id,
+			aktionsname: row.aktionsname,
 			rabatt_absolut: null,
 			hat_rabatt: false
 		};

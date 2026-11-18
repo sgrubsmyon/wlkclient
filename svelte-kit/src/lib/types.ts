@@ -41,6 +41,7 @@ export type Position = {
 	mwst_satz: number;
 	variabler_preis: boolean;
 	rabatt_id: number | null;
+	aktionsname?: string | null;
 	rabatt_absolut: number | null;
 	hat_rabatt: boolean;
 	// client-only bookkeeping
@@ -109,6 +110,7 @@ export type VerkaufDetail = {
 	artikel_vk_preis: number | null;
 	artikel_variabler_preis: boolean;
 	ist_pfand: boolean;
+	aktionsname: string | null;
 	gutschein_nr: number | null;
 };
 
