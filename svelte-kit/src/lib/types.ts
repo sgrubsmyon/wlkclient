@@ -109,6 +109,7 @@ export type VerkaufDetail = {
 	artikel_vk_preis: number | null;
 	artikel_variabler_preis: boolean;
 	ist_pfand: boolean;
+	gutschein_nr: number | null;
 };
 
 export type VerkaufMwst = {

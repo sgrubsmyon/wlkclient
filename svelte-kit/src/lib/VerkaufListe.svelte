@@ -80,12 +80,17 @@
 
 	function toPosition(row: VerkaufDetail): Position {
 		const stueckzahl = row.stueckzahl || 1;
+		const kind = row.ist_pfand ? 'pfand' : (spezialKinds[row.artikel_nr ?? ''] ?? 'artikel');
+		const name =
+			kind === 'gutschein' && row.gutschein_nr != null
+				? `Gutschein Nr. ${row.gutschein_nr}`
+				: (row.artikel_name ?? '');
 		return {
 			ref: `vd-${row.vd_id}`,
 			parent_ref: null,
-			kind: row.ist_pfand ? 'pfand' : (spezialKinds[row.artikel_nr ?? ''] ?? 'artikel'),
+			kind,
 			artikel_id: row.artikel_id ?? 0,
-			artikel_name: row.artikel_name ?? '',
+			artikel_name: name,
 			kurzname: row.artikel_kurzname,
 			lieferant_kurzname: row.lieferant_kurzname,
 			artikel_nr: row.artikel_nr ?? '',
