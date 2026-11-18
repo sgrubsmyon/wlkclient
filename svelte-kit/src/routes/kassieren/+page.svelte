@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import {
-		BadgeEuro,
 		BanknoteArrowDown,
 		BanknoteArrowUp,
 		Barcode,
@@ -666,7 +665,7 @@
 								gutscheinFehler = null;
 							}}
 						>
-							<BadgeEuro size={18} /> Gutschein
+							<Gift size={18} /> Gutschein
 						</button>
 					</div>
 
@@ -681,7 +680,7 @@
 								onchange={() => void refreshTotals()}
 								onenter={() => void refreshTotals()}
 							/>
-							<label for="rueckgeld">Rückgeld:</label>
+							<label for="rueckgeld">RÜCKGELD:</label>
 							<input
 								id="rueckgeld"
 								readonly
