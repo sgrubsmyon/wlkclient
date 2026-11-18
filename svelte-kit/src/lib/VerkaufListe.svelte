@@ -342,13 +342,13 @@
 	}
 
 	.tabelle {
-		flex: 1 1 66%;
+		flex: 1 1 50%;
 		min-width: 0;
 		overflow-x: auto;
 	}
 
 	.details {
-		flex: 1 1 34%;
+		flex: 1 1 50%;
 		min-width: 0;
 		display: flex;
 		flex-direction: column;
