@@ -369,7 +369,9 @@
 							<td data-order={verkauf.mwst_7}>{euro(verkauf.mwst_7)}</td>
 							<td data-order={verkauf.mwst_19}>{euro(verkauf.mwst_19)}</td>
 							<td>{verkauf.ec_zahlung ? 'Karte' : 'Bar'}</td>
-							<td data-order={verkauf.kunde_gibt ?? ''}>{euro(verkauf.kunde_gibt)}</td>
+							<td data-order={verkauf.kunde_gibt ?? ''}>
+								{verkauf.ec_zahlung ? '' : euro(verkauf.kunde_gibt)}
+							</td>
 							<td>{verkauf.storno_von ?? ''}</td>
 							<td>{verkauf.username ?? ''}</td>
 							{#if nurHeute}
