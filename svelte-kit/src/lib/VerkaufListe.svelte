@@ -6,7 +6,7 @@
 	import KassierArtikel from '#lib/KassierArtikel.svelte';
 	import Modal from '#lib/Modal.svelte';
 	import { api } from '#lib/api.js';
-	import { euro } from '#lib/format.js';
+	import { euro, vatSeverity } from '#lib/format.js';
 	import type {
 		Position,
 		PositionKind,
@@ -28,7 +28,20 @@
 	let tableEl: HTMLTableElement | undefined = $state();
 	let dataTable: { destroy: () => void } | undefined;
 
-	const positionen = $derived((details?.verkauf_details ?? []).map(toPosition));
+	const positionen = $derived.by(() => {
+		let lastArticle: string | null = null;
+		return (details?.verkauf_details ?? []).map((row) => {
+			const position = toPosition(row);
+			const childKind = ['pfand', 'rabatt', 'preisanpassung'].includes(position.kind);
+			if (childKind && lastArticle) {
+				position.parent_ref = lastArticle;
+			}
+			if (!childKind && position.kind === 'artikel') {
+				lastArticle = position.ref;
+			}
+			return position;
+		});
+	});
 
 	const summe = $derived(
 		(details?.verkauf_details ?? []).reduce((total, row) => total + Number(row.ges_preis), 0)
@@ -38,7 +51,6 @@
 			.filter((row) => row.artikel_nr === 'RABATT1' || row.artikel_nr === 'RABATT2')
 			.reduce((total, row) => total + Number(row.ges_preis), 0)
 	);
-	const zwischensumme = $derived(summe + rabatte);
 
 	const mwstZeilen = $derived.by(() => {
 		const vorhanden = details?.verkauf_mwst ?? [];
@@ -71,7 +83,7 @@
 		return {
 			ref: `vd-${row.vd_id}`,
 			parent_ref: null,
-			kind: spezialKinds[row.artikel_nr ?? ''] ?? 'artikel',
+			kind: row.ist_pfand ? 'pfand' : (spezialKinds[row.artikel_nr ?? ''] ?? 'artikel'),
 			artikel_id: row.artikel_id ?? 0,
 			artikel_name: row.artikel_name ?? '',
 			kurzname: row.artikel_kurzname,
@@ -105,9 +117,10 @@
 		const columns = nurHeute
 			? [{ orderable: false, searchable: false, targets: [9] }]
 			: [{ orderable: false, searchable: false, targets: [] }];
+		const smallScreen = window.matchMedia('(max-width: 1100px)').matches;
 		dataTable = new DataTable(tableEl, {
 			order: [],
-			pageLength: 25,
+			pageLength: smallScreen ? 10 : 25,
 			lengthMenu: [10, 25, 50, 100],
 			columnDefs: columns,
 			language: {
@@ -256,14 +269,16 @@
 				{/each}
 			</div>
 			<div class="zahlen">
-				<div><span>Zwischensumme:</span><span>{euro(zwischensumme)}</span></div>
+				<div class="summe">
+					<span>Summe:</span><span><strong>{euro(summe)}</strong></span>
+				</div>
 				{#each mwstZeilen as zeile (zeile.mwst_satz)}
-					<div>
+					<div class="mwst-zeile {vatSeverity(Number(zeile.mwst_satz))}">
 						<span>inkl. {Math.round(Number(zeile.mwst_satz) * 100)}% MwSt:</span>
 						<span>{euro(zeile.mwst_betrag)}</span>
 					</div>
 				{/each}
-				<div><span>Rabatte:</span><span>{euro(rabatte)}</span></div>
+				<div class="rabatte"><span>Rabatte:</span><span>{euro(rabatte)}</span></div>
 			</div>
 		{:else}
 			<p class="hinweis">Für Details einen Verkauf auswählen.</p>
@@ -349,6 +364,30 @@
 		display: flex;
 		justify-content: space-between;
 		gap: 1rem;
+	}
+
+	.zahlen .mwst-zeile {
+		padding: 0.1rem 0.35rem;
+		border-radius: 0.25rem;
+	}
+
+	.zahlen .mwst-zeile.success {
+		background-color: var(--alert-success);
+		color: #fff;
+	}
+
+	.zahlen .mwst-zeile.info {
+		background-color: var(--alert-info);
+		color: #fff;
+	}
+
+	.zahlen .mwst-zeile.error {
+		background-color: var(--alert-error);
+		color: #fff;
+	}
+
+	.zahlen .rabatte {
+		font-style: italic;
 	}
 
 	.hinweis {

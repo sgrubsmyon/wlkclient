@@ -25,7 +25,7 @@
 	import Suchfeld from '#lib/Suchfeld.svelte';
 	import Thumbnail from '#lib/Thumbnail.svelte';
 	import { api } from '#lib/api.js';
-	import { euro, parseDecimal } from '#lib/format.js';
+	import { euro, parseDecimal, vatSeverity } from '#lib/format.js';
 	import { thumbnailSize } from '#lib/theme.js';
 	import { WarenkorbStore } from '#lib/warenkorb.svelte.js';
 	import type { Artikel, Gutschein } from '#lib/types.js';
@@ -623,12 +623,14 @@
 						<span>Zwischensumme:</span><span>{euro(store.summen?.zwischensumme)}</span>
 					</div>
 					{#each mwstZeilen as zeile (zeile.mwst_satz)}
-						<div>
+						<div class="mwst-zeile {vatSeverity(zeile.mwst_satz)}">
 							<span>inkl. {Math.round(zeile.mwst_satz * 100)}% MwSt:</span>
 							<span>{euro(zeile.mwst_betrag)}</span>
 						</div>
 					{/each}
-					<div><span>Rabatte:</span><span>{euro(store.summen?.rabatte)}</span></div>
+					<div class="rabatte">
+						<span>Rabatte:</span><span>{euro(store.summen?.rabatte)}</span>
+					</div>
 				</div>
 				<div class="zahlung">
 					<button
@@ -1076,6 +1078,30 @@
 		display: flex;
 		justify-content: space-between;
 		gap: 1rem;
+	}
+
+	.zahlen .mwst-zeile {
+		padding: 0.1rem 0.35rem;
+		border-radius: 0.25rem;
+	}
+
+	.zahlen .mwst-zeile.success {
+		background-color: var(--alert-success);
+		color: #fff;
+	}
+
+	.zahlen .mwst-zeile.info {
+		background-color: var(--alert-info);
+		color: #fff;
+	}
+
+	.zahlen .mwst-zeile.error {
+		background-color: var(--alert-error);
+		color: #fff;
+	}
+
+	.zahlen .rabatte {
+		font-style: italic;
 	}
 
 	.bold {

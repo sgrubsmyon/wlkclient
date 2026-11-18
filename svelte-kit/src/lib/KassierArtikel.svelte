@@ -23,9 +23,14 @@
 		onprice: (ref: string, preis: number) => void;
 	} = $props();
 
-	const isChild = $derived(position.parent_ref != null);
-	const interactive = $derived(!isChild && !readonly);
-	const editablePrice = $derived(position.variabler_preis && !isChild && !readonly);
+	const indented = $derived(position.parent_ref != null);
+	const hasImage = $derived(['artikel', 'leergut', 'rueckgabe'].includes(position.kind));
+	const interactive = $derived(
+		!indented &&
+			!readonly &&
+			(position.kind === 'artikel' || position.kind === 'leergut' || position.kind === 'rueckgabe')
+	);
+	const editablePrice = $derived(position.variabler_preis && !indented && !readonly);
 	const total = $derived(euro(position.ges_preis));
 </script>
 
@@ -33,7 +38,7 @@
 <div
 	class="row {position.kind}"
 	class:selected
-	class:child={isChild}
+	class:child={indented}
 	role={interactive ? 'button' : undefined}
 	tabindex={interactive ? 0 : undefined}
 	onclick={() => interactive && onselect()}
@@ -41,7 +46,7 @@
 		if (interactive && (event.key === 'Enter' || event.key === ' ')) onselect();
 	}}
 >
-	{#if !isChild}
+	{#if hasImage}
 		<Thumbnail artikelId={position.artikel_id} size={cartThumbnailSize} />
 	{/if}
 
@@ -74,7 +79,7 @@
 		</div>
 
 		<div class="bottom">
-			{#if !isChild}
+			{#if hasImage}
 				<span class="lieferant">{position.lieferant_kurzname ?? ''}</span>
 				<span class="nr">{position.artikel_nr}</span>
 			{:else}

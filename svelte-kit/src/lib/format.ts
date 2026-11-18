@@ -2,11 +2,14 @@ const euroFormat = new Intl.NumberFormat('de-DE', { style: 'currency', currency:
 const numberFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 });
 
 export function euro(value: number | null | undefined) {
-	return value == null ? euroFormat.format(0) : euroFormat.format(value);
+	// `value === 0` also catches -0, which Intl would render as "-0,00 €".
+	const amount = value == null || value === 0 ? 0 : value;
+	return euroFormat.format(amount);
 }
 
 export function number(value: number | null | undefined) {
-	return value == null ? numberFormat.format(0) : numberFormat.format(value);
+	const amount = value == null || value === 0 ? 0 : value;
+	return numberFormat.format(amount);
 }
 
 /** Accept a decimal input with comma or dot. Returns null for invalid input. */
