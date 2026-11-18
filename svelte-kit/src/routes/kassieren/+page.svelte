@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import {
 		BanknoteArrowDown,
 		BanknoteArrowUp,
@@ -27,6 +27,7 @@
 	import { api } from '#lib/api.js';
 	import { euro, parseDecimal, vatSeverity } from '#lib/format.js';
 	import { thumbnailSize } from '#lib/theme.js';
+	import config from '#lib/config.json';
 	import { WarenkorbStore } from '#lib/warenkorb.svelte.js';
 	import type { Artikel, Gutschein } from '#lib/types.js';
 
@@ -38,6 +39,14 @@
 		restored = true;
 	});
 
+	function zeigeInfo(text: string) {
+		info = text;
+		clearTimeout(infoTimer);
+		infoTimer = setTimeout(() => (info = null), config.hinweisDauerMs);
+	}
+
+	onDestroy(() => clearTimeout(infoTimer));
+
 	// Keep a local copy, so a reload, an app switch or leaving the page keeps the cart.
 	$effect(() => {
 		if (restored) store.persist();
@@ -46,6 +55,7 @@
 	let modus = $state<'normal' | 'leergut' | 'rueckgabe'>('normal');
 	let error = $state<string | null>(null);
 	let info = $state<string | null>(null);
+	let infoTimer: ReturnType<typeof setTimeout> | undefined;
 	let barcodeFeld: Suchfeld | undefined = $state();
 	let nameFeld: Suchfeld | undefined = $state();
 	let preisModal = $state<Artikel | null>(null);
@@ -341,11 +351,12 @@
 				anzahlungBetrag: store.anzahlungBetrag,
 				anzahlungAufloesenNr: store.anzahlungAufloesenNr
 			});
-			info = `Buchung abgeschlossen. Rechnung Nr. ${verkauf.rechnungs_nr}.`;
+			let meldung = `Buchung abgeschlossen. Rechnung Nr. ${verkauf.rechnungs_nr}.`;
 			if (verkauf.change != null) {
-				info += ` Rückgeld: ${euro(verkauf.change)}.`;
+				meldung += ` Rückgeld: ${euro(verkauf.change)}.`;
 			}
-			if (verkauf.ec_warning) info += ` ${verkauf.ec_warning}`;
+			if (verkauf.ec_warning) meldung += ` ${verkauf.ec_warning}`;
+			zeigeInfo(meldung);
 			kundeGibt = '';
 			ecZahlung = false;
 			gutscheinModal = false;

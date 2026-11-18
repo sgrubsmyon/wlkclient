@@ -39,5 +39,6 @@
 			"--sidebar-button": "#4a4540",
 			"--sidebar-fg": "#cccccc"
 		}
-	}
+	},
+	"hinweisDauerMs": 30000
 }
