@@ -55,13 +55,17 @@
 		border-radius: 0 999px 999px 0;
 	}
 
-	button:not(:first-child) {
-		border-left: none;
+	button:not(:first-child):not(:last-child) {
+		border-radius: 0;
 	}
 
 	button.active {
 		background-color: var(--primary);
 		color: #000;
+	}
+
+	button:hover:not(.active) {
+		background-color: var(--border);
 	}
 
 	button:disabled {
