@@ -83,7 +83,7 @@
 		const kind = row.ist_pfand ? 'pfand' : (spezialKinds[row.artikel_nr ?? ''] ?? 'artikel');
 		const name =
 			kind === 'gutschein' && row.gutschein_nr != null
-				? `Gutschein Nr. ${row.gutschein_nr}`
+				? `Einlösung Gutschein Nr. ${row.gutschein_nr}`
 				: (row.artikel_name ?? '');
 		return {
 			ref: `vd-${row.vd_id}`,

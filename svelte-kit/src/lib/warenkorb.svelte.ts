@@ -426,7 +426,7 @@ export class WarenkorbStore {
 				parent_ref: null,
 				kind: 'gutschein',
 				artikel_id: 0,
-				artikel_name: `Gutschein Nr. ${nr}`,
+				artikel_name: `Einlösung Gutschein Nr. ${nr}`,
 				kurzname: null,
 				lieferant_kurzname: null,
 				artikel_nr: 'GUTSCHEINEINLOES',

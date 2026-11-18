@@ -83,7 +83,7 @@
 				<span class="lieferant">{position.lieferant_kurzname ?? ''}</span>
 				<span class="nr">{position.artikel_nr}</span>
 			{:else}
-				<span class="kind">{position.kind === 'pfand' ? 'Pfand' : position.artikel_name}</span>
+				<span class="nr special">{position.artikel_nr}</span>
 			{/if}
 
 			{#if interactive}
@@ -240,12 +240,6 @@
 		opacity: 0.8;
 	}
 
-	.kind {
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.02em;
-	}
-
 	.qty {
 		display: flex;
 		align-items: center;
@@ -342,10 +336,15 @@
 			grid-area: name;
 		}
 
-		.lieferant,
-		.kind {
+		.lieferant {
 			grid-area: lieferant;
 			align-self: center;
+		}
+
+		.nr.special {
+			grid-area: lieferant;
+			align-self: center;
+			display: block;
 		}
 
 		.qty {
