@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { Trash2 } from '@lucide/svelte';
+	import { SvelteDate } from 'svelte/reactivity';
+	import { Calendar, Trash2 } from '@lucide/svelte';
 	import 'datatables.net-dt/css/dataTables.dataTables.css';
 	import Alert from '#lib/Alert.svelte';
 	import KassierArtikel from '#lib/KassierArtikel.svelte';
@@ -24,6 +25,14 @@
 	let error = $state<string | null>(null);
 	let storno = $state<VerkaufUebersicht | null>(null);
 	let stornoBusy = $state(false);
+
+	let vonText = $state('');
+	let bisText = $state('');
+	let vonDatum = $state('');
+	let bisDatum = $state('');
+	let filterVon = $state<string | null>(null);
+	let filterBis = $state<string | null>(null);
+	let filterError = $state<string | null>(null);
 
 	let tableEl: HTMLTableElement | undefined = $state();
 	let dataTable: { destroy: () => void } | undefined;
@@ -147,15 +156,88 @@
 		});
 	}
 
+	function parseGermanDate(text: string): Date | null {
+		const match = text.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+		if (!match) return null;
+		const [, day, month, year] = match.map(Number);
+		const date = new Date(year, month - 1, day);
+		if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+			return null;
+		}
+		return date;
+	}
+
+	function isoStart(date: Date) {
+		const copy = new SvelteDate(date);
+		copy.setHours(0, 0, 0, 0);
+		return copy.toISOString();
+	}
+
+	function isoEnd(date: Date) {
+		const copy = new SvelteDate(date);
+		copy.setHours(23, 59, 59, 999);
+		return copy.toISOString();
+	}
+
+	function formatGerman(value: string) {
+		const [year, month, day] = value.split('-');
+		return day && month && year ? `${day}.${month}.${year}` : '';
+	}
+
+	function pickerValue(text: string) {
+		const date = parseGermanDate(text);
+		if (!date) return '';
+		const pad = (value: number) => String(value).padStart(2, '0');
+		return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+	}
+
+	async function applyFilter() {
+		filterError = null;
+		let von: Date | null = null;
+		let bis: Date | null = null;
+		if (vonText.trim()) {
+			von = parseGermanDate(vonText);
+			if (!von) {
+				filterError = 'Bitte „Von“ als TT.MM.JJJJ eingeben.';
+				return;
+			}
+		}
+		if (bisText.trim()) {
+			bis = parseGermanDate(bisText);
+			if (!bis) {
+				filterError = 'Bitte „Bis“ als TT.MM.JJJJ eingeben.';
+				return;
+			}
+		}
+		if (von && bis && von > bis) {
+			filterError = '„Von“ muss vor „Bis“ liegen.';
+			return;
+		}
+		filterVon = von ? isoStart(von) : null;
+		filterBis = bis ? isoEnd(bis) : null;
+		vonDatum = pickerValue(vonText);
+		bisDatum = pickerValue(bisText);
+		await load();
+	}
+
+	function setFromPicker(which: 'von' | 'bis', value: string) {
+		if (which === 'von') vonText = formatGerman(value);
+		else bisText = formatGerman(value);
+		void applyFilter();
+	}
+
 	async function load() {
 		dataTable?.destroy();
 		dataTable = undefined;
 		loading = true;
 		error = null;
 		try {
-			verkaeufe = await api<VerkaufUebersicht[]>(
-				`verkauf/uebersicht?nur_heute=${nurHeute}&limit=500`
-			);
+			let path = `verkauf/uebersicht?nur_heute=${nurHeute}&limit=500`;
+			if (!nurHeute) {
+				if (filterVon) path += `&von=${encodeURIComponent(filterVon)}`;
+				if (filterBis) path += `&bis=${encodeURIComponent(filterBis)}`;
+			}
+			verkaeufe = await api<VerkaufUebersicht[]>(path);
 		} catch (caught) {
 			error = caught instanceof Error ? caught.message : String(caught);
 			verkaeufe = [];
@@ -203,6 +285,56 @@
 
 <div class="inhalt">
 	<div class="tabelle">
+		{#if !nurHeute}
+			<div class="filter">
+				<span class="filter-label">Filtern:</span>
+				<label for="filter-von">Von:</label>
+				<div class="datum">
+					<input
+						id="filter-von"
+						type="text"
+						bind:value={vonText}
+						placeholder="TT.MM.JJJJ"
+						inputmode="numeric"
+						onchange={applyFilter}
+					/>
+					<span class="kalender">
+						<Calendar size={16} />
+						<input
+							type="date"
+							tabindex="-1"
+							aria-label="Von-Datum wählen"
+							bind:value={vonDatum}
+							onchange={() => setFromPicker('von', vonDatum)}
+						/>
+					</span>
+				</div>
+				<label for="filter-bis">Bis:</label>
+				<div class="datum">
+					<input
+						id="filter-bis"
+						type="text"
+						bind:value={bisText}
+						placeholder="TT.MM.JJJJ"
+						inputmode="numeric"
+						onchange={applyFilter}
+					/>
+					<span class="kalender">
+						<Calendar size={16} />
+						<input
+							type="date"
+							tabindex="-1"
+							aria-label="Bis-Datum wählen"
+							bind:value={bisDatum}
+							onchange={() => setFromPicker('bis', bisDatum)}
+						/>
+					</span>
+				</div>
+			</div>
+		{/if}
+		{#if filterError}
+			<p class="filter-error">{filterError}</p>
+		{/if}
 		{#if loading}
 			<p class="hinweis">Lade Verkäufe…</p>
 		{:else}
@@ -405,6 +537,63 @@
 		margin: 0;
 		font-size: 0.9rem;
 		opacity: 0.7;
+	}
+
+	.filter {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.6rem;
+	}
+
+	.filter-label {
+		font-weight: 700;
+	}
+
+	.datum {
+		position: relative;
+		display: inline-flex;
+	}
+
+	.datum input[type='text'] {
+		width: 9rem;
+		padding: 0.3rem 1.9rem 0.3rem 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: 0.375rem;
+		background-color: var(--input-bg);
+		color: var(--text);
+		font: inherit;
+	}
+
+	.kalender {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		display: grid;
+		place-items: center;
+		width: 1.8rem;
+		color: var(--text);
+		pointer-events: none;
+	}
+
+	.kalender input[type='date'] {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		padding: 0;
+		border: none;
+		opacity: 0;
+		cursor: pointer;
+		pointer-events: auto;
+	}
+
+	.filter-error {
+		margin: 0 0 0.5rem;
+		color: var(--alert-error);
+		font-size: 0.9rem;
 	}
 
 	.storno {
