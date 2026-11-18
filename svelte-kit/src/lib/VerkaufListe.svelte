@@ -299,12 +299,14 @@
 		.tabelle {
 			overflow: auto;
 			min-height: 0;
+			padding-right: 1rem;
 		}
 
 		.details {
 			overflow-y: auto;
 			min-height: 0;
 			padding-left: 1rem;
+			padding-right: 1rem;
 			border-left: 1px solid var(--border);
 		}
 
