@@ -13,12 +13,21 @@
 		onclose: () => void;
 		children: Snippet;
 	} = $props();
+
+	let backdropEl = $state<HTMLDivElement>();
+
+	// The backdrop needs focus for Escape to reach its keydown handler.
+	$effect(() => {
+		if (open) backdropEl?.focus();
+	});
 </script>
 
 {#if open}
 	<div
 		class="backdrop"
 		role="presentation"
+		tabindex="-1"
+		bind:this={backdropEl}
 		onclick={(event) => {
 			if (event.target === event.currentTarget) onclose();
 		}}
@@ -44,6 +53,7 @@
 		display: grid;
 		place-items: center;
 		background-color: rgb(0 0 0 / 0.5);
+		outline: none;
 	}
 
 	.dialog {
