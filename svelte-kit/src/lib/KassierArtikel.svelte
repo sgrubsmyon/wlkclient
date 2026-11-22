@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Minus, Plus, Trash2 } from '@lucide/svelte';
+	import Modal from '#lib/Modal.svelte';
 	import Thumbnail from '#lib/Thumbnail.svelte';
 	import { euro, parseDecimal, vatLabel, vatSeverity } from '#lib/format.js';
 	import { cartThumbnailSize } from '#lib/theme.js';
@@ -33,6 +34,14 @@
 	const editablePrice = $derived(position.variabler_preis && !indented && !readonly);
 	const total = $derived(euro(position.ges_preis));
 	const name = $derived(position.aktionsname || position.artikel_name);
+
+	let bildOffen = $state(false);
+	let bildFehler = $state(false);
+
+	function zeigeBild() {
+		bildFehler = false;
+		bildOffen = true;
+	}
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -48,7 +57,18 @@
 	}}
 >
 	{#if hasImage}
-		<Thumbnail artikelId={position.artikel_id} size={cartThumbnailSize} />
+		<button
+			type="button"
+			class="bild"
+			title="Bild vergrößern"
+			onclick={(event) => {
+				event.stopPropagation();
+				zeigeBild();
+			}}
+			onkeydown={(event) => event.stopPropagation()}
+		>
+			<Thumbnail artikelId={position.artikel_id} size={cartThumbnailSize} />
+		</button>
 	{/if}
 
 	<div class="main">
@@ -138,6 +158,19 @@
 	</div>
 </div>
 
+<Modal open={bildOffen} title={name} onclose={() => (bildOffen = false)}>
+	{#if bildFehler}
+		<p class="kein-bild">Kein Bild vorhanden.</p>
+	{:else}
+		<img
+			class="gross"
+			src={`/api/artikel/${position.artikel_id}/bild`}
+			alt={name}
+			onerror={() => (bildFehler = true)}
+		/>
+	{/if}
+</Modal>
+
 <style>
 	.row {
 		display: flex;
@@ -163,6 +196,27 @@
 		flex-direction: column;
 		gap: 0.35rem;
 		min-width: 0;
+	}
+
+	.bild {
+		align-self: flex-start;
+		padding: 0;
+		border: none;
+		background: none;
+		line-height: 0;
+		cursor: zoom-in;
+	}
+
+	.gross {
+		display: block;
+		max-width: 100%;
+		max-height: 70vh;
+		border-radius: 0.25rem;
+	}
+
+	.kein-bild {
+		margin: 0;
+		opacity: 0.7;
 	}
 
 	.top {
