@@ -58,6 +58,15 @@
 	let infoTimer: ReturnType<typeof setTimeout> | undefined;
 	let barcodeFeld: Suchfeld | undefined = $state();
 	let nameFeld: Suchfeld | undefined = $state();
+	let positionenEl = $state<HTMLDivElement>();
+
+	// New cart lines appear at the bottom, so keep the newest one in view.
+	let letzteAnzahl = 0;
+	$effect(() => {
+		const anzahl = store.positionen.length;
+		if (anzahl > letzteAnzahl && positionenEl) positionenEl.scrollTop = positionenEl.scrollHeight;
+		letzteAnzahl = anzahl;
+	});
 	let preisModal = $state<Artikel | null>(null);
 	let preisEingabe = $state('');
 	let anzahlungModal = $state<'neu' | 'aufloesen' | null>(null);
@@ -616,7 +625,7 @@
 						<Trash2 size={18} /> Alles löschen
 					</button>
 				</div>
-				<div class="positionen">
+				<div class="positionen" bind:this={positionenEl}>
 					{#if store.isEmpty}
 						<p class="leer">Der Warenkorb ist leer.</p>
 					{/if}
