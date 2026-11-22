@@ -1,6 +1,6 @@
 {
 	"thumbnailSize": 40,
-	"cartThumbnailSize": 100,
+	"cartThumbnailSize": 70,
 	"colors": {
 		"alerts": {
 			"success": "#1b5e20",
