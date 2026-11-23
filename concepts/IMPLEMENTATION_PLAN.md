@@ -306,6 +306,7 @@ Changing the theme updates `pref_theme` in the user table and a `theme` cookie, 
 			- Ggf. Business-Logik zur Berechnung der Abrechnungswerte in API packen
 		- Die Spalten nach der ersten Spalte enthalten je eine Abrechnung, mit der jüngsten links
 		- Standardmäßig werden 7 Abrechnungen pro Seite angezeigt (konfigurerbar)
+		- Umsetzung: einfache HTML-Tabelle statt DataTables, da die Pagination über Spalten (Abrechnungen) statt Zeilen läuft; Konfiguration `abrechnungenProSeite` in `src/lib/config.json`
 		- Unter den Werten gibt es in jeder Spalte, also jür jede Abrechnung, einen Button "Exportieren", um die Tagesabrechnung in eine ODS-Datei zu enxportieren.
 	- Über der Tabelle mit den Abrechnungsdaten ist oben links ein Datumsfilter mit Eingabe von Start- und Enddatum
 	- Im Tab "Tabesabrechnungen" ist zusätzlich oben rechts über der Tabelle ein Button "Tagesabrechnung machen" mit dem Hinweis "Zahlen in rot werden als neue Tagesabrechnung gespeichert"

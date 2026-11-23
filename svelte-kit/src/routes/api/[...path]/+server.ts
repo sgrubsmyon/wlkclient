@@ -24,13 +24,14 @@ async function proxy(event: RequestEvent) {
 		error(502, 'Der Server ist nicht erreichbar.');
 	}
 
-	return new Response(response.body, {
-		status: response.status,
-		headers: {
-			'content-type': response.headers.get('content-type') ?? 'application/json',
-			'cache-control': 'no-store'
-		}
+	const outHeaders = new Headers({
+		'content-type': response.headers.get('content-type') ?? 'application/json',
+		'cache-control': 'no-store'
 	});
+	const disposition = response.headers.get('content-disposition');
+	if (disposition) outHeaders.set('content-disposition', disposition);
+
+	return new Response(response.body, { status: response.status, headers: outHeaders });
 }
 
 export const GET = proxy;

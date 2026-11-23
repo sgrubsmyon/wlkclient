@@ -129,3 +129,55 @@ export type VerkaufDetails = {
 	verkauf_details: VerkaufDetail[];
 	verkauf_mwst: VerkaufMwst[];
 };
+
+export type AbrechnungMwst = {
+	mwst_satz: number;
+	mwst_netto: number;
+	mwst_betrag: number;
+	bar_brutto: number;
+};
+
+export type AbrechnungTag = {
+	id: number;
+	z_kasse_id: string;
+	zeitpunkt: string;
+	zeitpunkt_real: string;
+	kassenstand_id: number | null;
+	user_id: number | null;
+	rechnungs_nr_von: number;
+	rechnungs_nr_bis: number;
+	last_tse_sig_counter: number | null;
+	mwst: AbrechnungMwst[];
+};
+
+export type AbrechnungMonat = {
+	id: number;
+	monat: string;
+	abrechnung_tag_id_von: number;
+	abrechnung_tag_id_bis: number;
+	mwst: AbrechnungMwst[];
+};
+
+export type AbrechnungJahr = {
+	id: number;
+	jahr: number;
+	abrechnung_tag_id_von: number;
+	abrechnung_tag_id_bis: number;
+	mwst: AbrechnungMwst[];
+};
+
+export type AbrechnungVorschau = {
+	open: boolean;
+	rechnungs_nr_von: number | null;
+	rechnungs_nr_bis: number | null;
+	sales: number;
+	cash_sales: number;
+	ec_sales: number;
+	stornos: number;
+	storno_summe: number;
+	retouren_summe: number;
+	mwst: AbrechnungMwst[];
+	current_balance: number;
+	entnahmen: number;
+	expected_balance: number;
+};

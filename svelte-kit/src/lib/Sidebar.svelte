@@ -6,6 +6,7 @@
 		ChevronLeft,
 		ChevronRight,
 		Euro,
+		Grid3x3,
 		LogOut,
 		Moon,
 		Sun,
@@ -26,6 +27,7 @@
 		'theme',
 		{ href: '/kassieren', label: 'Kassieren', icon: Euro },
 		{ href: '/verkaeufe', label: 'Verkäufe', icon: TableOfContents },
+		{ href: '/abrechnungen', label: 'Abrechnungen', icon: Grid3x3 },
 		{ href: '/tse/status', label: 'TSE', icon: CardSim }
 	];
 

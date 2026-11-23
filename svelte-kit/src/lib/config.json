@@ -40,5 +40,6 @@
 			"--sidebar-fg": "#cccccc"
 		}
 	},
-	"hinweisDauerMs": 30000
+	"hinweisDauerMs": 30000,
+	"abrechnungenProSeite": 7
 }

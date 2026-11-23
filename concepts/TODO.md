@@ -10,7 +10,7 @@ This file tracks the implementation of the GUI described in `IMPLEMENTATION_PLAN
 
 ## Current status
 
-Milestones **M0–M9 are implemented** (see the commit history). M10–M16 are still open; those pages are
+Milestones **M0–M10 are implemented** (see the commit history). M11–M16 are still open; those pages are
 listed in the plan with "Details to be specified" and need the page design in the plan first.
 
 ## Milestone overview
@@ -187,11 +187,11 @@ Client:
 
 ## M10 – Abrechnungen
 
-- [ ] Specify the three levels and the Zählprotokoll UI in `IMPLEMENTATION_PLAN.md`
-- [ ] `/abrechnungen/tag`: list, details (`GET /abrechnung/tag/{id}`), preview (`GET /abrechnung/tag/vorschau`)
-- [ ] Perform a daily settlement: count protocol form (Münzen/Scheine, Soll values), submit `POST /abrechnung/tag` with `zaehlprotokoll`, show result and warnings
-- [ ] `/abrechnungen/monat` and `/abrechnungen/jahr`: list and details, read-only (created in the background)
-- [ ] `/abrechnungen` index with navigation to the three levels
+- [x] Specify the three levels and the Zählprotokoll UI in `IMPLEMENTATION_PLAN.md`
+- [x] `/abrechnungen/tag`: transposed table (one column per settlement with all `abrechnung_tag` fields, totals and VAT rows), red preview column for the open period, date filter, pagination and ODS export links
+- [x] Perform a daily settlement: count protocol modal (Münzen/Scheine, Soll-Kassenstand and difference, comment), submit `POST /abrechnung/tag` with `zaehlprotokoll`, reload list and preview
+- [x] `/abrechnungen/monat` and `/abrechnungen/jahr`: same table, read-only (created in the background)
+- [x] `/abrechnungen` index with navigation to the three levels and sidebar entry
 - [ ] Zählprotokoll history per settlement (`GET /zaehlprotokoll/abrechnung/{id}`)
 
 ## M11 – Kassenstand
