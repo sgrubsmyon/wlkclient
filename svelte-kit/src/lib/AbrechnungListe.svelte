@@ -290,6 +290,26 @@
 	{/if}
 </div>
 
+<div class="blaettern">
+	<button
+		type="button"
+		title="Vorherige Seite"
+		disabled={seite === 1 || loading}
+		onclick={() => blaettern(-1)}
+	>
+		<ChevronLeft size={18} />
+	</button>
+	<span>Seite {seite}</span>
+	<button
+		type="button"
+		title="Nächste Seite"
+		disabled={zeilen.length < proSeite || loading}
+		onclick={() => blaettern(1)}
+	>
+		<ChevronRight size={18} />
+	</button>
+</div>
+
 {#if loading}
 	<p class="hinweis">Lade Abrechnungen…</p>
 {:else if spalten.length === 0}
@@ -336,26 +356,6 @@
 		</table>
 	</div>
 {/if}
-
-<div class="blaettern">
-	<button
-		type="button"
-		title="Vorherige Seite"
-		disabled={seite === 1 || loading}
-		onclick={() => blaettern(-1)}
-	>
-		<ChevronLeft size={18} />
-	</button>
-	<span>Seite {seite}</span>
-	<button
-		type="button"
-		title="Nächste Seite"
-		disabled={zeilen.length < proSeite || loading}
-		onclick={() => blaettern(1)}
-	>
-		<ChevronRight size={18} />
-	</button>
-</div>
 
 <Modal open={zaehlenOffen} title="Tagesabrechnung machen" onclose={() => (zaehlenOffen = false)}>
 	{#if error}
@@ -444,6 +444,14 @@
 		font-size: 0.9rem;
 	}
 
+	.blaettern {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 0.75rem;
+		margin-bottom: 0.75rem;
+	}
+
 	.tabelle {
 		overflow: auto;
 	}
@@ -489,13 +497,6 @@
 		margin: 0;
 		font-size: 0.9rem;
 		opacity: 0.7;
-	}
-
-	.blaettern {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		margin-top: 0.75rem;
 	}
 
 	.blaettern button,
