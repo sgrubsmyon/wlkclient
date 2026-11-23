@@ -39,6 +39,29 @@
 	const proSeite = config.abrechnungenProSeite;
 	const einheiten = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200];
 
+	// Coin and banknote pictures, taken from the Java POS resources.
+	const geldBilder = import.meta.glob('./assets/geld/*.{gif,jpg}', {
+		eager: true,
+		query: '?url',
+		import: 'default'
+	}) as Record<string, string>;
+	const geldDateien: Record<number, string> = {
+		0.01: '1cent_klein.gif',
+		0.02: '2cent_klein.gif',
+		0.05: '5cent_klein.gif',
+		0.1: '10cent_klein.gif',
+		0.2: '20cent_klein.gif',
+		0.5: '50cent_klein.gif',
+		1: '1euro_klein.gif',
+		2: '2euro_klein.gif',
+		5: '5euro_neu_vorne_klein.jpg',
+		10: '10euro_neu_vorne_klein.jpg',
+		20: '20euro_neu_vorne_klein.jpg',
+		50: '50euro_neu_vorne_klein.jpg',
+		100: '100euro_klein.gif',
+		200: '200euro_klein.gif'
+	};
+
 	let zeilen = $state<Zeile[]>([]);
 	let vorschau = $state<AbrechnungVorschau | null>(null);
 	let seite = $state(1);
@@ -481,6 +504,7 @@
 	<div class="zaehlung">
 		{#each einheiten as einheit, index (einheit)}
 			<div class="zaehl-zeile">
+				<img class="geld" src={geldBilder[`./assets/geld/${geldDateien[einheit]}`]} alt="" />
 				<span class="einheit">{euro(einheit)}</span>
 				<button
 					type="button"
@@ -701,20 +725,27 @@
 	.zaehl-zeile {
 		display: flex;
 		align-items: center;
-		gap: 0.3rem;
+		gap: 0.25rem;
+	}
+
+	.zaehl-zeile .geld {
+		flex-shrink: 0;
+		width: 2.5rem;
+		height: 1.5rem;
+		object-fit: contain;
 	}
 
 	.zaehl-zeile .einheit {
-		width: 4.5rem;
+		width: 4rem;
 	}
 
 	.zaehl-zeile button {
-		width: 1.6rem;
-		height: 1.6rem;
+		width: 1.5rem;
+		height: 1.5rem;
 	}
 
 	.zaehl-zeile input {
-		width: 3.5rem;
+		width: 2.75rem;
 		padding: 0.15rem 0.35rem;
 		border: 1px solid var(--border);
 		border-radius: 0.25rem;
@@ -737,8 +768,8 @@
 	.zaehl-zeile .summe {
 		flex-shrink: 0;
 		margin-left: auto;
-		width: 6rem;
-		font-size: 0.9rem;
+		width: 5.5rem;
+		font-size: 0.85rem;
 		text-align: right;
 		white-space: nowrap;
 	}
