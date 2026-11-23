@@ -137,6 +137,23 @@ export type AbrechnungMwst = {
 	bar_brutto: number;
 };
 
+export type AbrechnungZaehlprotokollDetail = {
+	einheit: number;
+	anzahl: number;
+};
+
+export type AbrechnungZaehlprotokoll = {
+	id: number;
+	zeitpunkt: string;
+	kommentar: string;
+	aktiv: boolean;
+	details: AbrechnungZaehlprotokollDetail[];
+	summe: number;
+	soll_kassenstand: number | null;
+	differenz: number | null;
+	tageseinnahmen: number | null;
+};
+
 export type AbrechnungTag = {
 	id: number;
 	z_kasse_id: string;
@@ -148,6 +165,7 @@ export type AbrechnungTag = {
 	rechnungs_nr_bis: number;
 	last_tse_sig_counter: number | null;
 	mwst: AbrechnungMwst[];
+	zaehlprotokolle: AbrechnungZaehlprotokoll[];
 };
 
 export type AbrechnungMonat = {

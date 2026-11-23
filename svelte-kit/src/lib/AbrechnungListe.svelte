@@ -12,7 +12,8 @@
 		AbrechnungMonat,
 		AbrechnungMwst,
 		AbrechnungTag,
-		AbrechnungVorschau
+		AbrechnungVorschau,
+		AbrechnungZaehlprotokoll
 	} from '#lib/types.js';
 
 	let { kind }: { kind: 'tag' | 'monat' | 'jahr' } = $props();
@@ -24,7 +25,15 @@
 		titel: string;
 		roh: string[];
 		mwst: AbrechnungMwst[];
+		zaehlprotokolle: AbrechnungZaehlprotokoll[];
 		offen?: boolean;
+	};
+
+	type ZeileDef = {
+		label: string;
+		cls?: string;
+		wert: (spalte: Spalte) => string;
+		zelle?: (spalte: Spalte) => string | undefined;
 	};
 
 	const proSeite = config.abrechnungenProSeite;
@@ -75,7 +84,8 @@
 					tag.last_tse_sig_counter == null ? '–' : String(tag.last_tse_sig_counter),
 					tag.z_kasse_id
 				],
-				mwst: tag.mwst
+				mwst: tag.mwst,
+				zaehlprotokolle: tag.zaehlprotokolle
 			};
 		}
 		if (kind === 'monat') {
@@ -89,7 +99,8 @@
 					String(monat.abrechnung_tag_id_von),
 					String(monat.abrechnung_tag_id_bis)
 				],
-				mwst: monat.mwst
+				mwst: monat.mwst,
+				zaehlprotokolle: []
 			};
 		}
 		const jahr = zeile as AbrechnungJahr;
@@ -102,7 +113,8 @@
 				String(jahr.abrechnung_tag_id_von),
 				String(jahr.abrechnung_tag_id_bis)
 			],
-			mwst: jahr.mwst
+			mwst: jahr.mwst,
+			zaehlprotokolle: []
 		};
 	}
 
@@ -126,6 +138,7 @@
 				'–'
 			],
 			mwst: preview.mwst,
+			zaehlprotokolle: [],
 			offen: true
 		};
 	}
@@ -161,31 +174,122 @@
 		)
 	);
 
-	const labels = $derived([
-		...rohLabels,
-		'Gesamt Brutto',
-		'Gesamt Bar Brutto',
-		'Gesamt EC Brutto',
-		...mwstSaetze.flatMap((satz) => [
-			`${vatLabel(satz)} Brutto`,
-			`${vatLabel(satz)} Netto`,
-			`${vatLabel(satz)} Betrag`
-		])
-	]);
+	const zaehlprotokolleAnzahl = $derived(
+		Math.max(0, ...spalten.map((spalte) => spalte.zaehlprotokolle.length))
+	);
 
-	function werte(spalte: Spalte, index: number) {
-		if (index < spalte.roh.length) return spalte.roh[index];
-		const brutto = spalte.mwst.reduce((summe, m) => summe + m.mwst_netto + m.mwst_betrag, 0);
-		const bar = spalte.mwst.reduce((summe, m) => summe + m.bar_brutto, 0);
-		const offset = index - spalte.roh.length;
-		if (offset < 3) return euro([brutto, bar, brutto - bar][offset]);
-		const satz = mwstSaetze[Math.floor((offset - 3) / 3)];
-		const mwst = spalte.mwst.find((m) => m.mwst_satz === satz);
-		if (!mwst) return euro(0);
-		return euro(
-			[mwst.mwst_netto + mwst.mwst_betrag, mwst.mwst_netto, mwst.mwst_betrag][(offset - 3) % 3]
+	const zaehlEinheiten = $derived(
+		[
+			...new Set(
+				spalten.flatMap((spalte) =>
+					spalte.zaehlprotokolle.flatMap((protokoll) =>
+						protokoll.details.map((detail) => detail.einheit)
+					)
+				)
+			)
+		].sort((a, b) => a - b)
+	);
+
+	// Mirrors AbrechnungenTag.fillDataArrayColumn: the count protocols are listed
+	// below the export row, the newest first, inactive ones greyed out.
+	function zaehlprotokollZeilen(defs: ZeileDef[], index: number) {
+		const protokoll = (spalte: Spalte) => spalte.zaehlprotokolle[index];
+		const inaktiv = index > 0;
+		const basis = inaktiv ? 'inaktiv' : undefined;
+		const zelle = (spalte: Spalte): string | undefined =>
+			inaktiv || !protokoll(spalte) ? 'inaktiv' : undefined;
+		const push = (label: string, wert: (proto: AbrechnungZaehlprotokoll) => string) =>
+			defs.push({
+				label,
+				cls: basis,
+				zelle,
+				wert: (spalte) => {
+					const proto = protokoll(spalte);
+					return proto ? wert(proto) : '';
+				}
+			});
+
+		defs.push({
+			label: inaktiv ? 'Inaktives Zählprotokoll' : 'Aktives Zählprotokoll',
+			cls: inaktiv ? 'inaktiv zaehl-titel' : 'zaehl-titel',
+			zelle,
+			wert: () => ''
+		});
+		push('Zeitpunkt', (proto) => zeitpunktText(proto.zeitpunkt));
+		for (const einheit of zaehlEinheiten) {
+			push(`${euro(einheit)}, Anzahl =`, (proto) => {
+				const detail = proto.details.find((d) => d.einheit === einheit);
+				return detail ? String(detail.anzahl) : '';
+			});
+		}
+		push('Zähl-Kassenstand', (proto) => euro(proto.summe));
+		push('Soll-Kassenstand', (proto) =>
+			proto.soll_kassenstand == null ? '' : euro(proto.soll_kassenstand)
 		);
+		defs.push({
+			label: 'Differenz',
+			cls: basis,
+			wert: (spalte) => {
+				const proto = protokoll(spalte);
+				return proto?.differenz == null ? '' : euro(proto.differenz);
+			},
+			zelle: (spalte) => {
+				if (inaktiv) return 'inaktiv';
+				const proto = protokoll(spalte);
+				if (!proto || proto.differenz == null) return 'inaktiv';
+				return Math.abs(proto.differenz) < 0.005 ? 'gut' : 'schlecht';
+			}
+		});
+		push('Bar-Tageseinnahmen', (proto) =>
+			proto.tageseinnahmen == null ? '' : euro(proto.tageseinnahmen)
+		);
+		push('Kommentar', (proto) => proto.kommentar);
 	}
+
+	const zeilenDefs = $derived.by(() => {
+		const defs: ZeileDef[] = rohLabels.map((label, index) => ({
+			label,
+			wert: (spalte) => spalte.roh[index] ?? ''
+		}));
+		const summen = (spalte: Spalte) => {
+			const brutto = spalte.mwst.reduce((total, m) => total + m.mwst_netto + m.mwst_betrag, 0);
+			const bar = spalte.mwst.reduce((total, m) => total + m.bar_brutto, 0);
+			return [brutto, bar, brutto - bar];
+		};
+		['Gesamt Brutto', 'Gesamt Bar Brutto', 'Gesamt EC Brutto'].forEach((label, index) =>
+			defs.push({ label, wert: (spalte) => euro(summen(spalte)[index]) })
+		);
+		for (const satz of mwstSaetze) {
+			const mwst = (spalte: Spalte) => spalte.mwst.find((m) => m.mwst_satz === satz);
+			defs.push(
+				{
+					label: `${vatLabel(satz)} Brutto`,
+					wert: (spalte) => {
+						const row = mwst(spalte);
+						return euro(row ? row.mwst_netto + row.mwst_betrag : 0);
+					}
+				},
+				{
+					label: `${vatLabel(satz)} Netto`,
+					wert: (spalte) => euro(mwst(spalte)?.mwst_netto)
+				},
+				{
+					label: `${vatLabel(satz)} Betrag`,
+					wert: (spalte) => euro(mwst(spalte)?.mwst_betrag)
+				}
+			);
+		}
+		return defs;
+	});
+
+	// The Zählprotokoll sits below the export row of the settlements.
+	const zaehlZeilenDefs = $derived.by(() => {
+		const defs: ZeileDef[] = [];
+		for (let index = 0; index < zaehlprotokolleAnzahl; index++) {
+			zaehlprotokollZeilen(defs, index);
+		}
+		return defs;
+	});
 
 	async function lade() {
 		loading = true;
@@ -326,11 +430,13 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each labels as label, index (label)}
-					<tr>
-						<th scope="row">{label}</th>
+				{#each zeilenDefs as zeile, index (`${index}-${zeile.label}`)}
+					<tr class={zeile.cls}>
+						<th scope="row">{zeile.label}</th>
 						{#each spalten as spalte (spalte.id ?? 'offen')}
-							<td class:offen={spalte.offen}>{werte(spalte, index)}</td>
+							<td class={zeile.zelle?.(spalte) ?? ''} class:offen={spalte.offen}>
+								{zeile.wert(spalte)}
+							</td>
 						{/each}
 					</tr>
 				{/each}
@@ -340,7 +446,7 @@
 						<td>
 							{#if spalte.id != null}
 								<a
-									class="export"
+									class="primary"
 									href={resolve('/api/[...path]', {
 										path: `export/abrechnung/${kind}/${spalte.id}/ods`
 									})}
@@ -352,6 +458,16 @@
 						</td>
 					{/each}
 				</tr>
+				{#each zaehlZeilenDefs as zeile, index (`zaehl-${index}-${zeile.label}`)}
+					<tr class={zeile.cls}>
+						<th scope="row">{zeile.label}</th>
+						{#each spalten as spalte (spalte.id ?? 'offen')}
+							<td class={zeile.zelle?.(spalte) ?? ''} class:offen={spalte.offen}>
+								{zeile.wert(spalte)}
+							</td>
+						{/each}
+					</tr>
+				{/each}
 			</tbody>
 		</table>
 	</div>
@@ -444,6 +560,30 @@
 		font-size: 0.9rem;
 	}
 
+	/* The export links and the Tagesabrechnung button share one look. */
+	a.primary,
+	button.primary {
+		padding: 0.25rem 0.6rem;
+		border: none;
+		border-radius: 0.375rem;
+		background-color: var(--primary);
+		color: #000;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	button.primary:disabled {
+		opacity: 0.5;
+		cursor: default;
+	}
+
+	/* The main action is the same button, a bit larger. */
+	.aktion button.primary {
+		padding: 0.45rem 1rem;
+		font-size: 1rem;
+		font-weight: 700;
+	}
+
 	.blaettern {
 		display: flex;
 		align-items: center;
@@ -485,12 +625,35 @@
 		color: var(--alert-error);
 	}
 
-	.export {
-		padding: 0.25rem 0.6rem;
-		border-radius: 0.375rem;
-		background-color: var(--primary);
-		color: #000;
-		text-decoration: none;
+	:global(body[data-theme='dark']) .offen {
+		color: color-mix(in srgb, var(--alert-error) 40%, white);
+	}
+
+	tr.zaehl-titel th {
+		font-style: italic;
+	}
+
+	tr.inaktiv th,
+	td.inaktiv {
+		color: #808080;
+	}
+
+	td.gut {
+		color: var(--alert-success);
+		font-weight: 700;
+	}
+
+	td.schlecht {
+		color: var(--alert-error);
+		font-weight: 700;
+	}
+
+	:global(body[data-theme='dark']) td.gut {
+		color: color-mix(in srgb, var(--alert-success) 40%, white);
+	}
+
+	:global(body[data-theme='dark']) td.schlecht {
+		color: color-mix(in srgb, var(--alert-error) 40%, white);
 	}
 
 	.hinweis {

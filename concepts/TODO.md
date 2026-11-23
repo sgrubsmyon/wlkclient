@@ -192,7 +192,7 @@ Client:
 - [x] Perform a daily settlement: count protocol modal (Münzen/Scheine, Soll-Kassenstand and difference, comment), submit `POST /abrechnung/tag` with `zaehlprotokoll`, reload list and preview
 - [x] `/abrechnungen/monat` and `/abrechnungen/jahr`: same table, read-only (created in the background)
 - [x] `/abrechnungen` index with navigation to the three levels and sidebar entry
-- [ ] Zählprotokoll history per settlement (`GET /zaehlprotokoll/abrechnung/{id}`)
+- [x] Zählprotokoll-Historie je Abrechnung (aktives und inaktive Protokolle als Block unter der Export-Zeile; `GET /abrechnung/tag` liefert `zaehlprotokolle` mit Details, Summe, Soll, Differenz)
 
 ## M11 – Kassenstand
 

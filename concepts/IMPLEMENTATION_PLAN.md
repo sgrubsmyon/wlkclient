@@ -308,8 +308,10 @@ Changing the theme updates `pref_theme` in the user table and a `theme` cookie, 
 		- Standardmäßig werden 7 Abrechnungen pro Seite angezeigt (konfigurerbar)
 		- Umsetzung: einfache HTML-Tabelle statt DataTables, da die Pagination über Spalten (Abrechnungen) statt Zeilen läuft; Konfiguration `abrechnungenProSeite` in `src/lib/config.json`
 		- Unter den Werten gibt es in jeder Spalte, also jür jede Abrechnung, einen Button "Exportieren", um die Tagesabrechnung in eine ODS-Datei zu enxportieren.
+		- Unter der Zeile mit den "Exportieren"-Buttons steht im Tab "Tagesabrechnungen" das Zählprotokoll (wie Java `AbrechnungenTag.fillDataArrayColumn`): aktives und inaktive Protokolle (letztere grau) mit Zeitpunkt, "Anzahl =" je Münz-/Scheinart, Zähl-Kassenstand, Soll-Kassenstand, Differenz (grün bei 0, sonst rot), Bar-Tageseinnahmen und Kommentar.
 	- Über der Tabelle mit den Abrechnungsdaten ist oben links ein Datumsfilter mit Eingabe von Start- und Enddatum
 	- Im Tab "Tabesabrechnungen" ist zusätzlich oben rechts über der Tabelle ein Button "Tagesabrechnung machen" mit dem Hinweis "Zahlen in rot werden als neue Tagesabrechnung gespeichert"
+		- Der Button sieht aus wie die "Exportieren"-Buttons, ist aber etwas größer
 		- Nach Klick auf "Tagesabrechnungen" öffnet sich ein Modal zur Eingabe des "Zählprotokolls"
 			- Das Zählprotokoll ist ein Formular, in dem für jede Münz- und Scheinart ein Inputfeld zur Zahleneingabe existiert (mit +/- Buttons und Defaultwert 0)
 			- Unter der Eingabemaske wird die Kassendifferenz berechnet: Summe aller angegebenen Münzen/Scheine, Soll-Kassenstand laut DB und Differenzbetrag (sollte möglichst 0 sein)
