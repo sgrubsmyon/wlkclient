@@ -294,7 +294,27 @@ Changing the theme updates `pref_theme` in the user table and a `theme` cookie, 
 	- `abrechnung_jahr` (route /abrechnungen/jahr) (yearly settlements)
 - The `abrechnung_tag` can be performed here, including `zaehlprotokoll`
 - The others (month/year) are created automatically in the background
-- Details to be specified
+- Allgemeine Struktur:
+	- Es gibt drei Tabs: (like the tabs in "Verkäufe")
+		- "Tagesabrechnungen" (SQL table `abrechnung_tag`, route `/abrechnungen/tag`)
+		- "Monatsabrechnungen" (SQL table `abrechnung_monat`, route `/abrechnungen/monat`)
+		- "Jahresabrechnungen" (SQL table `abrechnung_jahr`, route `/abrechnungen/jahr`)
+	- Jeder Tab zeigt alle Daten aus der jeweiligen `abrechnung_*`-SQL-Tabelle in einem vertikalen Layout, z.B. einer Tabelle (via `datatables.net-dt`):
+		- Jede Zeile zeigt den Wert einer anderen Spalte der `abrechnung_*`-Tabelle
+		- Die erste Spalte enthält die Zeilenüberschriften mit den Namen der Felder: "Laufende Nr. (Z_NR)" (`abrechnung_tag.id`), "Gesamt Brutto" (`SELECT SUM(ges_preis) FROM verkauf_details WHERE rechnungs_nr >= abrechnung_tag.rechnungs_nr_von AND rechnungs_nr <= abrechnung_tag.rechnungs_nr_bis`), "Gesamt Bar Brutto", "Gesamt Karte Brutto", "7% MwSt Brutto", "7% MwSt Netto" etc.
+			- Für die Auswahl und Berechnung der angezeigten Werte bitte in JavaPOS in `Abrechnungen.java` oder `AbrechnungenTag.java` etc. schauen und die Logik kopieren
+			- Ggf. Business-Logik zur Berechnung der Abrechnungswerte in API packen
+		- Die Spalten nach der ersten Spalte enthalten je eine Abrechnung, mit der jüngsten links
+		- Standardmäßig werden 7 Abrechnungen pro Seite angezeigt (konfigurerbar)
+		- Unter den Werten gibt es in jeder Spalte, also jür jede Abrechnung, einen Button "Exportieren", um die Tagesabrechnung in eine ODS-Datei zu enxportieren.
+	- Über der Tabelle mit den Abrechnungsdaten ist oben links ein Datumsfilter mit Eingabe von Start- und Enddatum
+	- Im Tab "Tabesabrechnungen" ist zusätzlich oben rechts über der Tabelle ein Button "Tagesabrechnung machen" mit dem Hinweis "Zahlen in rot werden als neue Tagesabrechnung gespeichert"
+		- Nach Klick auf "Tagesabrechnungen" öffnet sich ein Modal zur Eingabe des "Zählprotokolls"
+			- Das Zählprotokoll ist ein Formular, in dem für jede Münz- und Scheinart ein Inputfeld zur Zahleneingabe existiert (mit +/- Buttons und Defaultwert 0)
+			- Unter der Eingabemaske wird die Kassendifferenz berechnet: Summe aller angegebenen Münzen/Scheine, Soll-Kassenstand laut DB und Differenzbetrag (sollte möglichst 0 sein)
+			- Darunter ist eine Textarea zur Eingabe eines Kommentars mit Hinweis 'Bitte eingeben: Was ist der Grund für die Differenz? Wenn die Differenz 0,00 € ist, dann einfach "Kasse stimmt", "passt" o.ä. eintragen'
+
+
 
 ### Kassenstand
 
