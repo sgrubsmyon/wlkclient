@@ -701,15 +701,20 @@
 	.zaehl-zeile {
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
+		gap: 0.3rem;
 	}
 
 	.zaehl-zeile .einheit {
 		width: 4.5rem;
 	}
 
+	.zaehl-zeile button {
+		width: 1.6rem;
+		height: 1.6rem;
+	}
+
 	.zaehl-zeile input {
-		width: 4rem;
+		width: 3.5rem;
 		padding: 0.15rem 0.35rem;
 		border: 1px solid var(--border);
 		border-radius: 0.25rem;
@@ -727,9 +732,15 @@
 		margin: 0;
 	}
 
+	/* Fixed width keeps the dialog from jumping while counting; 100 of the
+	   largest denomination still fit (20.000,00 €). */
 	.zaehl-zeile .summe {
+		flex-shrink: 0;
 		margin-left: auto;
+		width: 6rem;
 		font-size: 0.9rem;
+		text-align: right;
+		white-space: nowrap;
 	}
 
 	.differenz {
