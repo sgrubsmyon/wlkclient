@@ -730,8 +730,8 @@
 
 	.zaehl-zeile .geld {
 		flex-shrink: 0;
-		width: 2.5rem;
-		height: 1.5rem;
+		width: 3.75rem;
+		height: 2.25rem;
 		object-fit: contain;
 	}
 
