@@ -717,6 +717,14 @@
 		color: var(--text);
 		font: inherit;
 		text-align: right;
+		/* The +/- buttons replace the native spinner arrows. */
+		appearance: textfield;
+	}
+
+	.zaehl-zeile input::-webkit-inner-spin-button,
+	.zaehl-zeile input::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
 	}
 
 	.zaehl-zeile .summe {
