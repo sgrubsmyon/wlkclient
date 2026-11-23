@@ -396,8 +396,6 @@
 </script>
 
 <main>
-	<h1>Kassieren</h1>
-
 	{#if error}
 		<Alert severity="error">{error}</Alert>
 	{/if}
@@ -407,6 +405,7 @@
 
 	<div class="layout">
 		<div class="auswahl">
+			<h1>Kassieren</h1>
 			<section class="section-artikel">
 				<h3><ListOrdered size={20} /> Artikel hinzufügen</h3>
 				<PillGroup options={modi} bind:value={modus} />
